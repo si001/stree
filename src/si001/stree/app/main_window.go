@@ -5,6 +5,7 @@ import (
 	"github.com/nsf/termbox-go"
 	"log"
 	"os"
+	"si001/stree/files"
 	"si001/stree/screen"
 	"time"
 )
@@ -58,7 +59,7 @@ func ShowMain() {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	screen.Tree1 = buildTree(dir)
+	screen.Tree1 = files.BuildTree(dir)
 
 	//HeadLeft.
 

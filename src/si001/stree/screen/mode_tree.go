@@ -3,6 +3,8 @@ package screen
 import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/nsf/termbox-go"
+	"si001/stree/files"
+	"si001/stree/model"
 	"time"
 )
 
@@ -18,7 +20,7 @@ func ModetreeDraw(w, h int) {
 
 	dt := time.Now()
 	HeadRight = dt.Format("02.01.2006 15:04:05")
-	ScreenPrintAt(1, 0, termbox.ColorDefault, termbox.ColorDefault, HeadLeft+lastEvent.ID)
+	ScreenPrintAt(1, 0, termbox.ColorDefault, termbox.ColorDefault, HeadLeft+"   "+lastEvent.ID)
 	ScreenPrintAt(w-22, 0, termbox.ColorDefault, termbox.ColorDefault, HeadRight)
 
 	if divider == h-VC_BOTTOM_HEIGHT {
@@ -71,6 +73,12 @@ func ModetreePutEvent(event ui.Event) bool {
 		//case "<Resize>":
 		//	x, y := ui.TerminalDimensions()
 		//	l.SetRect(0, 0, x, y)
+	}
+
+	newPath := files.TreeNodeToPath(l.SelectedNode())
+	if model.CurrentPath != newPath {
+		model.CurrentPath = newPath
+		HeadLeft = model.CurrentPath
 	}
 
 	lastEvent = event

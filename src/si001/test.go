@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"si001/stree/app"
+	"si001/stree/files"
 )
 
 func main() {
-	dir := app.GetDirectory(".")
+	dir := files.GetDirectory(".")
 	fmt.Print("dddd", dir)
 }

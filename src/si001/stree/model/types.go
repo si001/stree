@@ -21,3 +21,7 @@ type Directory struct {
 func (dir Directory) String() string {
 	return dir.Name
 }
+
+//func (n widgets.TreeNode) Directory() *Directory {
+//	return n.
+//}

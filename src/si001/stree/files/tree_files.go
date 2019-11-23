@@ -1,20 +1,20 @@
-package app
+package files
 
 import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
-	"os"
 	"runtime"
 	"si001/stree/model"
 	"strings"
 )
 
-func buildTree(path string) *widgets.Tree {
-	divider := "/"
+func BuildTree(path string) *widgets.Tree {
+	model.PathDivider = "/"
 	if runtime.GOOS == "windows" {
-		divider = "\\"
+		model.PathDivider = "\\"
 	}
-	ph := strings.Split(path, divider)
+
+	ph := strings.Split(path, model.PathDivider)
 	var nodePath []*widgets.TreeNode
 	var root widgets.TreeNode
 	var dir *widgets.TreeNode
@@ -22,9 +22,9 @@ func buildTree(path string) *widgets.Tree {
 	for i, dirNm := range ph {
 		if i == 0 {
 			if dirNm == "" {
-				dirNm = divider
+				dirNm = model.PathDivider
 			}
-			root = *getRoot()
+			root = *GetRoot()
 			dir = &root
 			for _, rootElt := range dir.Nodes {
 				if dirNm == rootElt.Value.String() {
@@ -38,7 +38,9 @@ func buildTree(path string) *widgets.Tree {
 			nodePath = append(nodePath, dir)
 		}
 	}
-
+	if len(nodePath) > 0 {
+		NodeSetParent(nodePath[0], nil)
+	}
 	var l = widgets.NewTree()
 	l.TextStyle = ui.NewStyle(ui.ColorYellow, ui.ColorBlack, ui.ModifierClear)
 	l.WrapText = false
@@ -61,41 +63,4 @@ func buildTree(path string) *widgets.Tree {
 	//time.Sleep(time.Second * 9)
 
 	return l
-}
-
-func newDir(nm string, parent *widgets.TreeNode) (dir *widgets.TreeNode) {
-	dir = newDirFI(model.FileInfo{
-		Name: nm,
-		Attr: 1,
-	}, parent)
-	return dir
-}
-
-func newDirFI(fInfo model.FileInfo, parent *widgets.TreeNode) (dir *widgets.TreeNode) {
-	dir = &widgets.TreeNode{
-		Value: model.Directory{
-			FileInfo: fInfo,
-			Parent:   parent,
-		},
-	}
-	if parent != nil {
-		parent.Nodes = append(parent.Nodes, dir)
-	}
-	return dir
-}
-
-func getRoot() (r *widgets.TreeNode) {
-	if runtime.GOOS == "windows" {
-		r = newDir("", nil)
-		for _, drive := range "ABCDEFGHIJKLMNOPQRSTUVWXYZ" {
-			_, err := os.Open(string(drive) + ":\\")
-			if err == nil {
-				newDir(string(drive)+":", r)
-			}
-		}
-	} else {
-		r = newDir("", nil)
-		newDir("/", r)
-	}
-	return r
 }
