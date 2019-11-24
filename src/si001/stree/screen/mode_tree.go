@@ -46,8 +46,11 @@ func ModetreePutEvent(event ui.Event) bool {
 	case "<C-b>", "<PageUp>":
 		l.ScrollPageUp()
 	case "<Enter>":
-		if !l.SelectedNode().Expanded {
+		if !l.SelectedNode().Expanded && len(l.SelectedNode().Nodes) > 0 {
 			l.Expand()
+		} else {
+			ViewMode = VM_FILELIST_1
+			FilesList1.ScrollTop()
 		}
 	case "<Home>":
 		l.ScrollTop()
@@ -79,6 +82,8 @@ func ModetreePutEvent(event ui.Event) bool {
 	if model.CurrentPath != newPath {
 		model.CurrentPath = newPath
 		HeadLeft = model.CurrentPath
+
+		ShowDir(model.CurrentPath, l.SelectedNode(), false)
 	}
 
 	lastEvent = event

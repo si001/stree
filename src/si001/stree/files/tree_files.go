@@ -32,14 +32,12 @@ func BuildTree(path string) *widgets.Tree {
 					break
 				}
 			}
-			nodePath = append(nodePath, dir)
 		} else {
 			dir = newDir(dirNm, dir)
-			nodePath = append(nodePath, dir)
 		}
-	}
-	if len(nodePath) > 0 {
-		NodeSetParent(nodePath[0], nil)
+		nodePath = append(nodePath, dir)
+		dir.Value = ReadDir(dir)
+
 	}
 	var l = widgets.NewTree()
 	l.TextStyle = ui.NewStyle(ui.ColorYellow, ui.ColorBlack, ui.ModifierClear)

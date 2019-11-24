@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"si001/stree/files"
+	"si001/stree/model"
 	"si001/stree/screen"
 	"time"
 )
@@ -16,42 +17,11 @@ func ShowMain() {
 	}
 	defer ui.Close()
 
-	listData := []string{
-		"[0] gizak/termui",
-		"[1] editbox.go",
-		"[2] interrupt.go",
-		"[3] keyboard.go",
-		"[4] output.go",
-		"[5] random_out.go",
-		"[6] dashboard.go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[2] interrupt.go",
-		"[3] keyboard.go",
-		"[4] output.go",
-		"[5] random_out.go",
-		"[6] dashboard.go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-		"[7] nsf/termbox-go",
-	}
-
-	screen.FilesList1.Title = "Files"
-	screen.FilesList1.Rows = listData
+	//screen.FilesList1.Title = "Files"
+	//screen.FilesList1.Rows = listData
 	screen.FilesList1.TextStyle.Fg = ui.ColorYellow
 
-	screen.DriveInfo.Rows = listData
+	//screen.DriveInfo.Roqws = listData
 	screen.DriveInfo.TextStyle.Fg = ui.ColorYellow
 
 	dir, err := os.Getwd()
@@ -61,28 +31,12 @@ func ShowMain() {
 	}
 	screen.Tree1 = files.BuildTree(dir)
 
-	//HeadLeft.
+	model.CurrentPath = files.TreeNodeToPath(screen.Tree1.SelectedNode())
+	screen.HeadLeft = model.CurrentPath
+	screen.ShowDir(model.CurrentPath, screen.Tree1.SelectedNode(), false)
 
-	draw := func(count int) {
-		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-		w, h := termbox.Size()
-
-		switch screen.ViewMode {
-		case screen.VM_TREEVIEW_FILES_1:
-			{
-				screen.ModetreeDraw(w, h)
-			}
-		case screen.VM_FILELIST_1:
-			{
-				screen.ModefilesDraw(w, h)
-			}
-
-		}
-	}
-
-	tickerCount := 1
+	tickerCount := 0
 	draw(tickerCount)
-
 	previousKey := ""
 	uiEvents := ui.PollEvents()
 	ticker := time.NewTicker(time.Second).C
@@ -94,7 +48,7 @@ func ShowMain() {
 			case "q":
 				return
 			default:
-				screen.ModetreePutEvent(e)
+				processEvent(e)
 			}
 			if previousKey == "g" {
 				previousKey = ""
@@ -106,5 +60,27 @@ func ShowMain() {
 		}
 
 		draw(tickerCount)
+	}
+}
+
+func processEvent(event ui.Event) {
+	switch screen.ViewMode {
+	case screen.VM_TREEVIEW_FILES_1:
+		screen.ModetreePutEvent(event)
+	case screen.VM_FILELIST_1:
+		screen.ModefilesPutEvent(event)
+	}
+
+}
+
+var draw = func(count int) {
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	w, h := termbox.Size()
+
+	switch screen.ViewMode {
+	case screen.VM_TREEVIEW_FILES_1:
+		screen.ModetreeDraw(w, h)
+	case screen.VM_FILELIST_1:
+		screen.ModefilesDraw(w, h)
 	}
 }
