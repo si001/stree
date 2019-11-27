@@ -11,7 +11,7 @@ import (
 func newDir(nm string, parent *widgets.TreeNode) (dir *widgets.TreeNode) {
 	dir = newDirFI(model.FileInfo{
 		Name: nm,
-		Attr: 1,
+		Attr: model.ATTR_NOTREAD,
 	}, parent)
 	return dir
 }
@@ -24,7 +24,18 @@ func newDirFI(fInfo model.FileInfo, parent *widgets.TreeNode) (dir *widgets.Tree
 		},
 	}
 	if parent != nil {
-		parent.Nodes = append(parent.Nodes, dir)
+		exist := false
+		for _, item := range parent.Nodes {
+			if item.Value.String() == dir.Value.String() {
+				item.Value = dir.Value
+				dir = item
+				exist = true
+				break
+			}
+		}
+		if !exist {
+			parent.Nodes = append(parent.Nodes, dir)
+		}
 	}
 	return dir
 }
@@ -44,8 +55,11 @@ func GetRoot() (r *widgets.TreeNode) {
 	return r
 }
 
-func ReadDir(node *widgets.TreeNode) model.Directory {
+func ReadDir(node *widgets.TreeNode) model.Directory /*, []model.Directory*/ {
 	path := TreeNodeToPath(node)
+	if model.PathDivider == "\\" && len(path) == 2 && path[1] == ':' {
+		path += model.PathDivider
+	}
 	dir := node.Value.(model.Directory)
 	osfiles, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -53,19 +67,17 @@ func ReadDir(node *widgets.TreeNode) model.Directory {
 		dir.FileInfo.Attr = model.ATTR_ERR_MESSAGE
 		return dir
 	} else {
-		node := widgets.TreeNode{
-			Value: dir,
-		}
+		dir.FileInfo.Attr = model.ATTR_DIR
 		for _, file := range osfiles {
 			fInfo := model.FileInfo{Name: file.Name(), Size: file.Size(), ModTime: file.ModTime(), Attr: model.ATTR_FILE}
 			if file.IsDir() {
 				fInfo.Attr = model.ATTR_NOTREAD
-				dInfo := newDirFI(fInfo, &node)
-				node.Nodes = append(node.Nodes, dInfo)
+				newDirFI(fInfo, node)
 			} else {
 				dir.Files = append(dir.Files, &fInfo)
 			}
 		}
+		node.Value = dir
 		return dir
 	}
 

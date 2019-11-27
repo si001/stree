@@ -46,7 +46,12 @@ func ModetreePutEvent(event ui.Event) bool {
 	case "<C-b>", "<PageUp>":
 		l.ScrollPageUp()
 	case "<Enter>":
-		if !l.SelectedNode().Expanded && len(l.SelectedNode().Nodes) > 0 {
+		node := l.SelectedNode()
+		if node.Value.(model.Directory).Attr == model.ATTR_NOTREAD {
+			files.ReadDir(node)
+			ShowDir(model.CurrentPath, node, false)
+			l.Expand()
+		} else if !node.Expanded && len(node.Nodes) > 0 {
 			l.Expand()
 		} else {
 			ViewMode = VM_FILELIST_1
