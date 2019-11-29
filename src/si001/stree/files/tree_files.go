@@ -2,9 +2,9 @@ package files
 
 import (
 	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
 	"runtime"
 	"si001/stree/model"
+	"si001/stree/widgets"
 	"strings"
 )
 

@@ -1,8 +1,8 @@
 package files
 
 import (
-	"github.com/gizak/termui/v3/widgets"
 	"si001/stree/model"
+	"si001/stree/widgets"
 )
 
 //func NodeSetParent(node *widgets.TreeNode, parent *widgets.TreeNode) {

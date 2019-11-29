@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/gizak/termui/v3/widgets"
+	"si001/stree/widgets"
 	"time"
 )
 

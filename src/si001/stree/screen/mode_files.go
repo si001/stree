@@ -2,10 +2,10 @@ package screen
 
 import (
 	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
 	"github.com/nsf/termbox-go"
 	"si001/stree/files"
 	"si001/stree/model"
+	"si001/stree/widgets"
 	"time"
 )
 

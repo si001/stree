@@ -2,7 +2,7 @@ package screen
 
 import (
 	"github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
+	"si001/stree/widgets"
 )
 
 var FilesList1 = widgets.NewList()

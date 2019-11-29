@@ -1,11 +1,11 @@
 package files
 
 import (
-	"github.com/gizak/termui/v3/widgets"
 	"io/ioutil"
 	"os"
 	"runtime"
 	"si001/stree/model"
+	"si001/stree/widgets"
 )
 
 func newDir(nm string, parent *widgets.TreeNode) (dir *widgets.TreeNode) {

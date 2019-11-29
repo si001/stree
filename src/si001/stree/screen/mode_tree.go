@@ -5,6 +5,7 @@ import (
 	"github.com/nsf/termbox-go"
 	"si001/stree/files"
 	"si001/stree/model"
+	"si001/stree/widgets"
 	"time"
 )
 
@@ -45,6 +46,15 @@ func ModetreePutEvent(event ui.Event) bool {
 		l.ScrollPageDown()
 	case "<C-b>", "<PageUp>":
 		l.ScrollPageUp()
+	case "<F3>":
+		node := l.SelectedNode()
+		files.ReadDir(node)
+		ShowDir(model.CurrentPath, node, false)
+		l.Expand()
+	case "<F5>":
+		pressedF5(l)
+	case "<F6>":
+		pressedF6(l)
 	case "<Enter>":
 		node := l.SelectedNode()
 		if node.Value.(model.Directory).Attr == model.ATTR_NOTREAD {
@@ -57,6 +67,9 @@ func ModetreePutEvent(event ui.Event) bool {
 			ViewMode = VM_FILELIST_1
 			FilesList1.ScrollTop()
 		}
+	case "*":
+		RefreshTreeNodeRecource(l.SelectedNode())
+		l.ExpandRecursive()
 	case "<Home>":
 		l.ScrollTop()
 	case "<End>":
@@ -94,4 +107,38 @@ func ModetreePutEvent(event ui.Event) bool {
 	lastEvent = event
 
 	return true
+}
+
+func RefreshTreeNodeRecource(node *widgets.TreeNode) {
+	files.ReadDir(node)
+	for _, n := range node.Nodes {
+		RefreshTreeNodeRecource(n)
+	}
+}
+
+func pressedF6(tree *widgets.Tree) {
+	node := tree.SelectedNode()
+	if node.Expanded {
+		tree.Collapse()
+	} else {
+		tree.ExpandRecursive()
+	}
+}
+
+func pressedF5(tree *widgets.Tree) {
+	node := tree.SelectedNode()
+	allExpanded := true && node.Expanded
+	if allExpanded {
+		for _, n := range node.Nodes {
+			if !n.Expanded {
+				allExpanded = false
+				break
+			}
+		}
+	}
+	if allExpanded {
+		tree.CollapseOneLevel()
+	} else {
+		tree.ExpandRecursive()
+	}
 }
