@@ -2,11 +2,10 @@ package widgets
 
 import (
 	"fmt"
+	"github.com/gdamore/tcell"
 	"image"
+	"si001/stree/widgets/stuff"
 	"strings"
-
-	. "github.com/gizak/termui/v3"
-	rw "github.com/mattn/go-runewidth"
 )
 
 const treeIndent = "  "
@@ -25,28 +24,28 @@ type TreeNode struct {
 // To interrupt the walking process function should return false.
 type TreeWalkFn func(*TreeNode) bool
 
-func (self *TreeNode) parseStyles(style Style) []Cell {
+func (self *TreeNode) parseStyles() string {
 	var sb strings.Builder
 	if len(self.Nodes) == 0 {
 		sb.WriteString(strings.Repeat(treeIndent, self.level+1))
 	} else {
 		sb.WriteString(strings.Repeat(treeIndent, self.level))
 		if self.Expanded {
-			sb.WriteRune(Theme.Tree.Expanded)
+			sb.WriteRune(stuff.Theme.Tree.Expanded)
 		} else {
-			sb.WriteRune(Theme.Tree.Collapsed)
+			sb.WriteRune(stuff.Theme.Tree.Collapsed)
 		}
 		sb.WriteByte(' ')
 	}
 	sb.WriteString(self.Value.String())
-	return ParseStyles(sb.String(), style)
+	return sb.String()
 }
 
 // Tree is a tree widget.
 type Tree struct {
-	Block
-	TextStyle        Style
-	SelectedRowStyle Style
+	stuff.Block
+	TextStyle        tcell.Style
+	SelectedRowStyle tcell.Style
 	WrapText         bool
 	SelectedRow      int
 
@@ -59,9 +58,9 @@ type Tree struct {
 // NewTree creates a new Tree widget.
 func NewTree() *Tree {
 	return &Tree{
-		Block:            *NewBlock(),
-		TextStyle:        Theme.Tree.Text,
-		SelectedRowStyle: Theme.Tree.Text,
+		Block:            *stuff.NewBlock(),
+		TextStyle:        stuff.Theme.Tree.Text,
+		SelectedRowStyle: stuff.Theme.Tree.Text.Foreground(tcell.ColorYellow),
 		WrapText:         true,
 	}
 }
@@ -118,8 +117,8 @@ func (self *Tree) walk(n *TreeNode, fn TreeWalkFn) bool {
 	return true
 }
 
-func (self *Tree) Draw(buf *Buffer) {
-	self.Block.Draw(buf)
+func (self *Tree) Draw(s tcell.Screen) {
+	self.Block.Draw(s)
 	point := self.Inner.Min
 
 	// adjusts view into widget
@@ -131,39 +130,38 @@ func (self *Tree) Draw(buf *Buffer) {
 
 	// draw rows
 	for row := self.topRow; row < len(self.rows) && point.Y < self.Inner.Max.Y; row++ {
-		cells := self.rows[row].parseStyles(self.TextStyle)
-		if self.WrapText {
-			cells = WrapCells(cells, uint(self.Inner.Dx()))
+		style := self.TextStyle
+		if row == self.SelectedRow {
+			style = self.SelectedRowStyle
 		}
-		for j := 0; j < len(cells) && point.Y < self.Inner.Max.Y; j++ {
-			style := cells[j].Style
-			if row == self.SelectedRow {
-				style = self.SelectedRowStyle
-			}
-			if point.X+1 == self.Inner.Max.X+1 && len(cells) > self.Inner.Dx() {
-				buf.SetCell(NewCell(ELLIPSES, style), point.Add(image.Pt(-1, 0)))
-			} else {
-				buf.SetCell(NewCell(cells[j].Rune, style), point)
-				point = point.Add(image.Pt(rw.RuneWidth(cells[j].Rune), 0))
-			}
-		}
+		node := self.rows[row]
+		stuff.ScreenPrintAt(s, point.X, point.Y, style, node.parseStyles())
+		//	cells := self.rows[row].parseStyles(self.TextStyle)
+		//	if self.WrapText {
+		//		cells = WrapCells(cells, uint(self.Inner.Dx()))
+		//	}
+		//	for j := 0; j < len(cells) && point.Y < self.Inner.Max.Y; j++ {
+		//		style := cells[j].Style
+		//		if row == self.SelectedRow {
+		//			style = self.SelectedRowStyle
+		//		}
+		//		if point.X+1 == self.Inner.Max.X+1 && len(cells) > self.Inner.Dx() {
+		//			buf.SetCell(NewCell(ELLIPSES, style), point.Add(image.Pt(-1, 0)))
+		//		} else {
+		//			buf.SetCell(NewCell(cells[j].Rune, style), point)
+		//			point = point.Add(image.Pt(rw.RuneWidth(cells[j].Rune), 0))
+		//		}
+		//	}
 		point = image.Pt(self.Inner.Min.X, point.Y+1)
 	}
 
 	// draw UP_ARROW if needed
 	if self.topRow > 0 {
-		buf.SetCell(
-			NewCell(UP_ARROW, NewStyle(ColorWhite)),
-			image.Pt(self.Inner.Max.X-1, self.Inner.Min.Y),
-		)
+		stuff.ScreenPrintAt(s, self.Inner.Min.X-1, self.Inner.Min.Y, self.BorderStyle, string(stuff.UP_ARROW))
 	}
-
 	// draw DOWN_ARROW if needed
 	if len(self.rows) > int(self.topRow)+self.Inner.Dy() {
-		buf.SetCell(
-			NewCell(DOWN_ARROW, NewStyle(ColorWhite)),
-			image.Pt(self.Inner.Max.X-1, self.Inner.Max.Y-1),
-		)
+		stuff.ScreenPrintAt(s, self.Inner.Min.X-1, self.Inner.Max.Y-1, self.BorderStyle, string(stuff.DOWN_ARROW))
 	}
 }
 
@@ -209,11 +207,11 @@ func (self *Tree) ScrollPageDown() {
 }
 
 func (self *Tree) ScrollHalfPageUp() {
-	self.ScrollAmount(-int(FloorFloat64(float64(self.Inner.Dy()) / 2)))
+	self.ScrollAmount(-int(stuff.FloorFloat64(float64(self.Inner.Dy()) / 2)))
 }
 
 func (self *Tree) ScrollHalfPageDown() {
-	self.ScrollAmount(int(FloorFloat64(float64(self.Inner.Dy()) / 2)))
+	self.ScrollAmount(int(stuff.FloorFloat64(float64(self.Inner.Dy()) / 2)))
 }
 
 func (self *Tree) ScrollTop() {

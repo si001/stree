@@ -5,15 +5,14 @@
 package widgets
 
 import (
+	. "github.com/gdamore/tcell"
 	"image"
-
-	rw "github.com/mattn/go-runewidth"
-
-	. "github.com/gizak/termui/v3"
+	"si001/stree/widgets/stuff"
+	//. "github.com/gdamore/tcell/termbox"
 )
 
 type List struct {
-	Block
+	stuff.Block
 	Rows             []string
 	WrapText         bool
 	TextStyle        Style
@@ -24,14 +23,14 @@ type List struct {
 
 func NewList() *List {
 	return &List{
-		Block:            *NewBlock(),
-		TextStyle:        Theme.List.Text,
-		SelectedRowStyle: Theme.List.Text,
+		Block:            *stuff.NewBlock(),
+		TextStyle:        stuff.Theme.List.Text,
+		SelectedRowStyle: stuff.Theme.List.Text.Foreground(ColorYellow),
 	}
 }
 
-func (self *List) Draw(buf *Buffer) {
-	self.Block.Draw(buf)
+func (self *List) Draw(s Screen) {
+	self.Block.Draw(s)
 
 	point := self.Inner.Min
 
@@ -44,44 +43,21 @@ func (self *List) Draw(buf *Buffer) {
 
 	// draw rows
 	for row := self.topRow; row < len(self.Rows) && point.Y < self.Inner.Max.Y; row++ {
-		cells := ParseStyles(self.Rows[row], self.TextStyle)
-		if self.WrapText {
-			cells = WrapCells(cells, uint(self.Inner.Dx()))
+		style := self.TextStyle
+		if row == self.SelectedRow {
+			style = self.SelectedRowStyle
 		}
-		for j := 0; j < len(cells) && point.Y < self.Inner.Max.Y; j++ {
-			style := cells[j].Style
-			if row == self.SelectedRow {
-				style = self.SelectedRowStyle
-			}
-			if cells[j].Rune == '\n' {
-				point = image.Pt(self.Inner.Min.X, point.Y+1)
-			} else {
-				if point.X+1 == self.Inner.Max.X+1 && len(cells) > self.Inner.Dx() {
-					buf.SetCell(NewCell(ELLIPSES, style), point.Add(image.Pt(-1, 0)))
-					break
-				} else {
-					buf.SetCell(NewCell(cells[j].Rune, style), point)
-					point = point.Add(image.Pt(rw.RuneWidth(cells[j].Rune), 0))
-				}
-			}
-		}
+		stuff.ScreenPrintAt(s, point.X+1, point.Y, style, self.Rows[row])
 		point = image.Pt(self.Inner.Min.X, point.Y+1)
 	}
 
 	// draw UP_ARROW if needed
 	if self.topRow > 0 {
-		buf.SetCell(
-			NewCell(UP_ARROW, NewStyle(ColorWhite)),
-			image.Pt(self.Inner.Max.X-1, self.Inner.Min.Y),
-		)
+		stuff.ScreenPrintAt(s, self.Inner.Min.X-1, self.Inner.Min.Y, self.BorderStyle, string(stuff.UP_ARROW))
 	}
-
 	// draw DOWN_ARROW if needed
 	if len(self.Rows) > int(self.topRow)+self.Inner.Dy() {
-		buf.SetCell(
-			NewCell(DOWN_ARROW, NewStyle(ColorWhite)),
-			image.Pt(self.Inner.Max.X-1, self.Inner.Max.Y-1),
-		)
+		stuff.ScreenPrintAt(s, self.Inner.Min.X-1, self.Inner.Max.Y-1, self.BorderStyle, string(stuff.DOWN_ARROW))
 	}
 }
 
@@ -120,11 +96,11 @@ func (self *List) ScrollPageDown() {
 }
 
 func (self *List) ScrollHalfPageUp() {
-	self.ScrollAmount(-int(FloorFloat64(float64(self.Inner.Dy()) / 2)))
+	self.ScrollAmount(-int(stuff.FloorFloat64(float64(self.Inner.Dy()) / 2)))
 }
 
 func (self *List) ScrollHalfPageDown() {
-	self.ScrollAmount(int(FloorFloat64(float64(self.Inner.Dy()) / 2)))
+	self.ScrollAmount(int(stuff.FloorFloat64(float64(self.Inner.Dy()) / 2)))
 }
 
 func (self *List) ScrollTop() {

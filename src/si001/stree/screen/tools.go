@@ -1,13 +1,21 @@
 package screen
 
 import (
+	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
-	"github.com/nsf/termbox-go"
 )
 
-func ScreenPrintAt(x, y int, fg, bg termbox.Attribute, msg string) {
-	for _, c := range msg {
-		termbox.SetCell(x, y, c, fg, bg)
-		x += runewidth.RuneWidth(c)
+func ScreenPrintAt(s tcell.Screen, x, y int, style tcell.Style, str string) {
+	var comb []rune
+	for _, c := range str {
+		comb = nil
+		w := runewidth.RuneWidth(c)
+		if w == 0 {
+			comb = []rune{c}
+			c = ' '
+			w = 1
+		}
+		s.SetContent(x, y, c, comb, style)
+		x += w
 	}
 }

@@ -1,28 +1,49 @@
 package app
 
 import (
-	ui "github.com/gizak/termui/v3"
-	"github.com/nsf/termbox-go"
+	//ui "github.com/gizak/termui/v3"
+	//"github.com/nsf/termbox-go"
+
+	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/encoding"
+	"time"
+
+	"fmt"
 	"log"
 	"os"
 	"si001/stree/files"
 	"si001/stree/model"
 	"si001/stree/screen"
-	"time"
+	"si001/stree/widgets/stuff"
 )
 
+var defStyle tcell.Style
+
 func ShowMain() {
-	if err := ui.Init(); err != nil {
+	encoding.Register()
+
+	s, err := tcell.NewScreen()
+	if err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
-	defer ui.Close()
+	if e := s.Init(); e != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", e)
+		os.Exit(1)
+	}
+	defStyle = tcell.StyleDefault.
+		Background(tcell.ColorBlack).
+		Foreground(tcell.ColorWhite)
+	s.SetStyle(defStyle)
+	s.EnableMouse()
+	s.Clear()
+	//defer ui.Close()
 
 	//screen.FilesList1.Title = "Files"
 	//screen.FilesList1.Rows = listData
-	screen.FilesList1.TextStyle.Fg = ui.ColorYellow
+	//screen.FilesList1.TextStyle.Fg = ui.ColorYellow
 
 	//screen.DriveInfo.Roqws = listData
-	screen.DriveInfo.TextStyle.Fg = ui.ColorYellow
+	//screen.DriveInfo.TextStyle.Fg = ui.ColorYellow
 
 	dir, err := os.Getwd()
 	if err != nil {
@@ -35,52 +56,74 @@ func ShowMain() {
 	screen.HeadLeft = model.CurrentPath
 	screen.ShowDir(model.CurrentPath, screen.Tree1.SelectedNode(), false)
 
+	model.SelectedStyle = tcell.StyleDefault.Background(tcell.ColorBlue).Foreground(tcell.ColorWhite).Normal()
+	w, h := s.Size()
+	model.Divider = int(float32(h-2-screen.VC_BOTTOM_HEIGHT)*0.7) + 2
+
 	tickerCount := 0
-	draw(tickerCount)
+	draw(s, tickerCount)
 	previousKey := ""
-	uiEvents := ui.PollEvents()
-	ticker := time.NewTicker(time.Second).C
+	//uiEvents := s.PollEvent()
+	var tim *time.Timer
+	callback := func() {
+		var evt tcell.Event
+		s.PostEvent(evt)
+		tim.Reset(time.Second)
+	}
+	tim = time.AfterFunc(time.Second, callback)
 
 	for {
-		select {
-		case e := <-uiEvents:
-			switch e.ID {
-			case "q":
+		//select {
+		//case ev := <- s.PollEvent():
+		event := s.PollEvent()
+		switch ev := event.(type) {
+		case *tcell.EventResize:
+			s.Sync()
+			st := tcell.StyleDefault.Background(tcell.ColorRed)
+			s.SetContent(w-1, h-1, 'R', nil, st)
+		case *tcell.EventMouse:
+			//x, y := ev.Position()
+			//button := ev.Buttons()
+			//s.SetContent(w-1, h-1, 'R', nil, st)
+			processEvent(event)
+		case *tcell.EventKey:
+			switch {
+			case ev.Rune() == 'q':
 				return
 			default:
-				processEvent(e)
+				processEvent(event)
 			}
 			if previousKey == "g" {
 				previousKey = ""
 			} else {
-				previousKey = e.ID
+				previousKey = ev.Name()
 			}
-		case <-ticker:
-			tickerCount++
 		}
+		//case <-ticker:
+		//	tickerCount++
+		//}
 
-		draw(tickerCount)
+		draw(s, tickerCount)
 	}
 }
 
-func processEvent(event ui.Event) {
+func processEvent(event tcell.Event) {
 	switch screen.ViewMode {
 	case screen.VM_TREEVIEW_FILES_1:
 		screen.ModetreePutEvent(event)
 	case screen.VM_FILELIST_1:
 		screen.ModefilesPutEvent(event)
 	}
-
 }
 
-var draw = func(count int) {
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	w, h := termbox.Size()
-
+var draw = func(s tcell.Screen, count int) {
+	w, h := s.Size()
+	stuff.ScreenFillBox(s, 0, 0, w, h, tcell.StyleDefault, ' ')
 	switch screen.ViewMode {
 	case screen.VM_TREEVIEW_FILES_1:
-		screen.ModetreeDraw(w, h)
+		screen.ModetreeDraw(s, w, h)
 	case screen.VM_FILELIST_1:
-		screen.ModefilesDraw(w, h)
+		screen.ModefilesDraw(s, w, h)
 	}
+	s.Show()
 }

@@ -1,7 +1,6 @@
 package files
 
 import (
-	ui "github.com/gizak/termui/v3"
 	"runtime"
 	"si001/stree/model"
 	"si001/stree/widgets"
@@ -40,7 +39,7 @@ func BuildTree(path string) *widgets.Tree {
 
 	}
 	var l = widgets.NewTree()
-	l.TextStyle = ui.NewStyle(ui.ColorYellow, ui.ColorBlack, ui.ModifierClear)
+	//l.TextStyle = ui.NewStyle(ui.ColorYellow, ui.ColorBlack, ui.ModifierClear)
 	l.WrapText = false
 	l.SetNodes(root.Nodes)
 	l.ScrollTop()

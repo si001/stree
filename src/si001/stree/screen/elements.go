@@ -1,7 +1,6 @@
 package screen
 
 import (
-	"github.com/gizak/termui/v3"
 	"si001/stree/widgets"
 )
 
@@ -21,4 +20,4 @@ var ViewMode = VM_TREEVIEW_FILES_1
 const VC_INFO_WIDTH = 25
 const VC_BOTTOM_HEIGHT = 1
 
-var lastEvent termui.Event
+var lastEvent string

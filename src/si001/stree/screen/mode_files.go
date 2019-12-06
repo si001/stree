@@ -1,27 +1,30 @@
 package screen
 
 import (
-	ui "github.com/gizak/termui/v3"
-	"github.com/nsf/termbox-go"
+	"github.com/gdamore/tcell"
+	//"github.com/gdamore/tcell/encoding"
+
 	"si001/stree/files"
 	"si001/stree/model"
 	"si001/stree/widgets"
 	"time"
 )
 
-func ModefilesDraw(w, h int) {
+func ModefilesDraw(s tcell.Screen, w, h int) {
 
 	//FilesList1.Rows = listData[count%9:]
-	FilesList1.SetRect(0, 1, w-24, h-1)
-	DriveInfo.SetRect(w-25, 1, w, h-1)
+	FilesList1.SetRect(0, 1, w-VC_INFO_WIDTH+1, h-VC_BOTTOM_HEIGHT)
+	DriveInfo.SetRect(w-VC_INFO_WIDTH, 1, w-1, h-VC_BOTTOM_HEIGHT)
 	//p.Text = fmt.Sprintf("%s : %d , %d:%d", p.Text[:20], count, w, h)
 
+	style := tcell.Style(0).Foreground(tcell.ColorDefault).Background(tcell.ColorDefault)
 	dt := time.Now()
 	HeadRight = dt.Format("02.01.2006 15:04:05")
-	ScreenPrintAt(1, 0, termbox.ColorDefault, termbox.ColorDefault, HeadLeft+"   "+lastEvent.ID)
-	ScreenPrintAt(w-22, 0, termbox.ColorDefault, termbox.ColorDefault, HeadRight)
+	ScreenPrintAt(s, 1, 0, style, HeadLeft+"   "+lastEvent)
+	ScreenPrintAt(s, w-22, 0, style, HeadRight)
 
-	ui.Render(Tree1, DriveInfo, FilesList1)
+	FilesList1.Draw(s)
+	DriveInfo.Draw(s)
 }
 
 func ShowDir(s string, node *widgets.TreeNode, actualise bool) {
@@ -39,31 +42,42 @@ func ShowDir(s string, node *widgets.TreeNode, actualise bool) {
 	FilesList1.Rows = rows
 }
 
-func ModefilesPutEvent(event ui.Event) bool {
+func ModefilesPutEvent(event tcell.Event) bool {
 	l := FilesList1
-	switch event.ID {
-	case "<Down>", "<MouseWheelDown>":
-		l.ScrollDown()
-	case "<Up>", "<MouseWheelUp>":
-		l.ScrollUp()
-	case "<Enter>", "<Escape>":
-		ViewMode = VM_TREEVIEW_FILES_1
-		l.ScrollTop()
-	case "<Home>":
-		l.ScrollTop()
-	case "<End>":
-		l.ScrollBottom()
-	case "<Right>":
-		l.ScrollPageDown()
-	case "<Left>":
-		l.ScrollPageUp()
+	switch ev := event.(type) {
+	case *tcell.EventResize:
+		//s.Sync()
+		//st := tcell.StyleDefault.Background(tcell.ColorRed)
+		//s.SetContent(w-1, h-1, 'R', nil, st)
+	case *tcell.EventMouse:
+		//x, y := ev.Position()
+		//button := ev.Buttons()
+		//s.SetContent(w-1, h-1, 'R', nil, st)
+		//processEvent(event)
+	case *tcell.EventKey:
+		switch ev.Key() {
+		case tcell.KeyDown: //, "<MouseWheelDown>":
+			l.ScrollDown()
+		case tcell.KeyUp: //"<Up>", "<MouseWheelUp>":
+			l.ScrollUp()
+		case tcell.KeyEnter, tcell.KeyEsc:
+			ViewMode = VM_TREEVIEW_FILES_1
+			l.ScrollTop()
+		case tcell.KeyHome:
+			l.ScrollTop()
+		case tcell.KeyEnd:
+			l.ScrollBottom()
+		case tcell.KeyRight:
+			l.ScrollPageDown()
+		case tcell.KeyLeft:
+			l.ScrollPageUp()
 
-		//case "<Resize>":
-		//	x, y := ui.TerminalDimensions()
-		//	l.SetRect(0, 0, x, y)
+			//case "<Resize>":
+			//	x, y := ui.TerminalDimensions()
+			//	l.SetRect(0, 0, x, y)
+		}
+		lastEvent = ev.Name()
 	}
-
-	lastEvent = event
 
 	return true
 }
