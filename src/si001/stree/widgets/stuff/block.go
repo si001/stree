@@ -46,7 +46,6 @@ func NewBlock() *Block {
 
 func (self *Block) drawBorder(s tcell.Screen) {
 	ScreenDrawBox(s, self.Min.X, self.Min.Y, self.Max.X, self.Max.Y, self.BorderStyle, ' ')
-
 }
 
 // Draw implements the Drawable interface.

@@ -36,13 +36,13 @@ func (self *List) Draw(s Screen) {
 
 	// adjusts view into widget
 	if self.SelectedRow >= self.Inner.Dy()+self.topRow {
-		self.topRow = self.SelectedRow - self.Inner.Dy() + 1
+		self.topRow = self.SelectedRow - self.Inner.Dy()
 	} else if self.SelectedRow < self.topRow {
 		self.topRow = self.SelectedRow
 	}
 
 	// draw rows
-	for row := self.topRow; row < len(self.Rows) && point.Y < self.Inner.Max.Y; row++ {
+	for row := self.topRow; row < len(self.Rows) && point.Y <= self.Inner.Max.Y; row++ {
 		style := self.TextStyle
 		if row == self.SelectedRow {
 			style = self.SelectedRowStyle

@@ -38,13 +38,6 @@ func ShowMain() {
 	s.Clear()
 	//defer ui.Close()
 
-	//screen.FilesList1.Title = "Files"
-	//screen.FilesList1.Rows = listData
-	//screen.FilesList1.TextStyle.Fg = ui.ColorYellow
-
-	//screen.DriveInfo.Roqws = listData
-	//screen.DriveInfo.TextStyle.Fg = ui.ColorYellow
-
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)

@@ -23,6 +23,28 @@ func ScreenPrintAt(s tcell.Screen, x, y int, style tcell.Style, str string) {
 		x += w
 	}
 }
+func ScreenPrintStr(s tcell.Screen, x, y int, style tcell.Style, str string) int {
+	var comb []rune
+	for _, c := range str {
+		comb = nil
+		w := runewidth.RuneWidth(c)
+		if w == 0 {
+			comb = []rune{c}
+			c = ' '
+			w = 1
+		}
+		s.SetContent(x, y, c, comb, style)
+		x += w
+	}
+	return x
+}
+func ScreenPrintAtTween(s tcell.Screen, x, y, xTo int, style1 tcell.Style, style2 tcell.Style, str1, str2 string) {
+	x = ScreenPrintStr(s, x, y, style1, str1)
+	x = ScreenPrintStr(s, x, y, style2, str2)
+	for i := x; i <= xTo; i++ {
+		s.SetContent(i, y, ' ', nil, style2)
+	}
+}
 
 func ScreenDrawBox(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, r rune) {
 	if y2 < y1 {
@@ -65,6 +87,16 @@ func ScreenFillBox(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, r rune
 	for row := y1; row <= y2; row++ {
 		for col := x1; col <= x2; col++ {
 			s.SetContent(col, row, r, nil, style)
+		}
+	}
+}
+
+func ScreenDrawScrolled(s tcell.Screen, x, y1, y2, y3 int, style tcell.Style) {
+	for i := y1; i <= y3; i++ {
+		if i == y2 {
+			s.SetContent(x, i, tcell.RuneBlock, nil, style)
+		} else {
+			s.SetContent(x, i, tcell.RuneBoard, nil, style)
 		}
 	}
 }

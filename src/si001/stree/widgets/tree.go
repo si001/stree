@@ -8,38 +8,66 @@ import (
 	"strings"
 )
 
-const treeIndent = "  "
+const TreeIndent = "  "
 
 // TreeNode is a tree node.
 type TreeNode struct {
 	Value    fmt.Stringer
 	Expanded bool
 	Nodes    []*TreeNode
-
 	// level stores the node level in the tree.
-	level int
+	Level int
 }
 
-// TreeWalkFn is a function used for walking a Tree.
-// To interrupt the walking process function should return false.
-type TreeWalkFn func(*TreeNode) bool
+type Patcher interface {
+	ParsePatch(node *TreeNode) (path, value string)
+}
+
+type NodeValue struct {
+	Name string
+}
+
+func (self NodeValue) String() string {
+	return self.Name
+}
+
+func (self NodeValue) ParsePatch(node *TreeNode) string {
+	var sb strings.Builder
+	if len(node.Nodes) == 0 {
+		sb.WriteString(strings.Repeat(TreeIndent, node.Level+1))
+	} else {
+		sb.WriteString(strings.Repeat(TreeIndent, node.Level))
+		if node.Expanded {
+			sb.WriteRune(stuff.Theme.Tree.Expanded)
+		} else {
+			sb.WriteRune(stuff.Theme.Tree.Collapsed)
+		}
+		sb.WriteRune(stuff.Theme.Tree.Expanded)
+	}
+	sb.WriteString(self.Name)
+	return sb.String()
+}
 
 func (self *TreeNode) parseStyles() string {
 	var sb strings.Builder
 	if len(self.Nodes) == 0 {
-		sb.WriteString(strings.Repeat(treeIndent, self.level+1))
+		sb.WriteString(strings.Repeat(TreeIndent, self.Level+1))
 	} else {
-		sb.WriteString(strings.Repeat(treeIndent, self.level))
+		sb.WriteString(strings.Repeat(TreeIndent, self.Level))
 		if self.Expanded {
 			sb.WriteRune(stuff.Theme.Tree.Expanded)
 		} else {
 			sb.WriteRune(stuff.Theme.Tree.Collapsed)
 		}
-		sb.WriteByte(' ')
+		sb.WriteRune(stuff.Theme.Tree.Expanded)
 	}
 	sb.WriteString(self.Value.String())
 	return sb.String()
 }
+
+// TreeWalkFn is a function used for walking a Tree.
+// To interrupt the walking process function should return false.
+type TreeWalkFn func(*TreeNode) bool
 
 // Tree is a tree widget.
 type Tree struct {
@@ -60,7 +88,7 @@ func NewTree() *Tree {
 	return &Tree{
 		Block:            *stuff.NewBlock(),
 		TextStyle:        stuff.Theme.Tree.Text,
-		SelectedRowStyle: stuff.Theme.Tree.Text.Foreground(tcell.ColorYellow),
+		SelectedRowStyle: stuff.Theme.Tree.Text.Foreground(tcell.ColorWhite).Background(tcell.ColorBlue),
 		WrapText:         true,
 	}
 }
@@ -86,7 +114,7 @@ func (self *Tree) prepareNodes() {
 
 func (self *Tree) prepareNode(node *TreeNode, level int) {
 	self.rows = append(self.rows, node)
-	node.level = level
+	node.Level = level
 
 	if node.Expanded {
 		for _, n := range node.Nodes {
@@ -128,6 +156,7 @@ func (self *Tree) Draw(s tcell.Screen) {
 		self.topRow = self.SelectedRow
 	}
 
+	var nodePath string
 	// draw rows
 	for row := self.topRow; row < len(self.rows) && point.Y < self.Inner.Max.Y; row++ {
 		style := self.TextStyle
@@ -135,34 +164,30 @@ func (self *Tree) Draw(s tcell.Screen) {
 			style = self.SelectedRowStyle
 		}
 		node := self.rows[row]
-		stuff.ScreenPrintAt(s, point.X, point.Y, style, node.parseStyles())
-		//	cells := self.rows[row].parseStyles(self.TextStyle)
-		//	if self.WrapText {
-		//		cells = WrapCells(cells, uint(self.Inner.Dx()))
-		//	}
-		//	for j := 0; j < len(cells) && point.Y < self.Inner.Max.Y; j++ {
-		//		style := cells[j].Style
-		//		if row == self.SelectedRow {
-		//			style = self.SelectedRowStyle
-		//		}
-		//		if point.X+1 == self.Inner.Max.X+1 && len(cells) > self.Inner.Dx() {
-		//			buf.SetCell(NewCell(ELLIPSES, style), point.Add(image.Pt(-1, 0)))
-		//		} else {
-		//			buf.SetCell(NewCell(cells[j].Rune, style), point)
-		//			point = point.Add(image.Pt(rw.RuneWidth(cells[j].Rune), 0))
-		//		}
-		//	}
+		//if (node.Value insta)
+		nodeString := node.parseStyles()
+		if patcher, ok := node.Value.(Patcher); ok {
+			nodePath, nodeString = patcher.ParsePatch(node)
+		}
+		stuff.ScreenPrintAtTween(s, point.X, point.Y, self.Inner.Max.X, self.TextStyle, style, nodePath, nodeString)
 		point = image.Pt(self.Inner.Min.X, point.Y+1)
 	}
 
+	// draw scroller
+	y1 := self.Inner.Min.Y
+	y3 := self.Inner.Max.Y - 1
 	// draw UP_ARROW if needed
 	if self.topRow > 0 {
-		stuff.ScreenPrintAt(s, self.Inner.Min.X-1, self.Inner.Min.Y, self.BorderStyle, string(stuff.UP_ARROW))
+		stuff.ScreenPrintAt(s, self.Inner.Min.X-1, y1, self.BorderStyle, string(stuff.UP_ARROW))
+		y1++
 	}
 	// draw DOWN_ARROW if needed
 	if len(self.rows) > int(self.topRow)+self.Inner.Dy() {
-		stuff.ScreenPrintAt(s, self.Inner.Min.X-1, self.Inner.Max.Y-1, self.BorderStyle, string(stuff.DOWN_ARROW))
+		stuff.ScreenPrintAt(s, self.Inner.Min.X-1, y3, self.BorderStyle, string(stuff.DOWN_ARROW))
+		y3--
 	}
+	y2 := y1 + int((float32(y3-y1+1))*(float32(self.SelectedRow)/float32(len(self.rows))))
+	stuff.ScreenDrawScrolled(s, self.Inner.Min.X-1, y1, y2, y3, self.BorderStyle)
 }
 
 // ScrollAmount scrolls by amount given. If amount is < 0, then scroll up.

@@ -3,11 +3,10 @@ package screen
 import (
 	"fmt"
 	"github.com/gdamore/tcell"
-	//ui "github.com/gizak/termui/v3"
-	//"github.com/nsf/termbox-go"
 	"si001/stree/files"
 	"si001/stree/model"
 	"si001/stree/widgets"
+	"si001/stree/widgets/stuff"
 	"time"
 )
 
@@ -20,12 +19,6 @@ func ModetreeDraw(s tcell.Screen, w, h int) {
 	FilesList1.SetRect(0, Tree1.GetRect().Max.Y-1, w-VC_INFO_WIDTH+1, h-VC_BOTTOM_HEIGHT)
 	DriveInfo.SetRect(w-VC_INFO_WIDTH, 1, w-1, h-VC_BOTTOM_HEIGHT)
 
-	style := tcell.Style(0).Foreground(tcell.ColorDefault).Background(tcell.ColorDefault)
-	dt := time.Now()
-	HeadRight = dt.Format("02.01.2006 15:04:05")
-	ScreenPrintAt(s, 1, 0, style, HeadLeft+"   "+lastEvent)
-	ScreenPrintAt(s, w-22, 0, style, HeadRight)
-
 	if model.Divider == h-VC_BOTTOM_HEIGHT {
 		Tree1.Draw(s)
 		DriveInfo.Draw(s)
@@ -34,20 +27,29 @@ func ModetreeDraw(s tcell.Screen, w, h int) {
 		FilesList1.Draw(s)
 		DriveInfo.Draw(s)
 	}
+
+	style := tcell.Style(0).Foreground(tcell.ColorDefault).Background(tcell.ColorDefault).Bold(true)
+	dt := time.Now()
+	HeadRight = dt.Format("02.01.2006 15:04:05")
+	stuff.ScreenPrintAt(s, 1, 0, style, HeadLeft+"   "+lastEvent)
+	stuff.ScreenPrintAt(s, w-22, 0, style, HeadRight)
 }
 
 func ModetreePutEvent(event tcell.Event) bool {
 	l := Tree1
-
 	switch ev := event.(type) {
 	case *tcell.EventResize:
+		//x, y := ev.Size()
+		//l.SetRect(0, 0, x, y)
 	case *tcell.EventMouse:
-		//x, y := ev.Position()
-		//button := ev.Buttons()
-		//s.SetContent(w-1, h-1, 'R', nil, st)
-		//processEvent(*ev)
+		switch ev.Buttons() {
+		case tcell.WheelUp:
+			l.ScrollUp()
+		case tcell.WheelDown:
+			l.ScrollDown()
+		}
 		x, y := ev.Position()
-		lastEvent = fmt.Sprintf("%d:%d / %s / %s", x, y, ev.Buttons(), ev.Modifiers())
+		lastEvent = fmt.Sprintf("%d:%d / %s : %s", x, y, string(ev.Buttons()), ev.Modifiers())
 	case *tcell.EventKey:
 		switch ev.Key() {
 		case tcell.KeyDown, tcell.KeyCtrlSpace: //"<Down>", "<MouseWheelDown>", "<Space>":
@@ -112,13 +114,24 @@ func ModetreePutEvent(event tcell.Event) bool {
 			} else {
 				l.ScrollUp()
 			}
-			//case tcell.KeyUp:
-
-			//case "<Resize>":
-			//	x, y := ui.TerminalDimensions()
-			//	l.SetRect(0, 0, x, y)
 		}
+
 		switch ev.Name() {
+		case "Rune[+]", "Shift+Rune[+]":
+			if !l.SelectedNode().Expanded && len(l.SelectedNode().Nodes) > 0 {
+				l.Expand()
+			}
+		case "Rune[-]", "Shift+Rune[-]":
+			if l.SelectedNode().Expanded {
+				node := l.SelectedNode()
+				node.Nodes = nil
+				dir := node.Value.(model.Directory)
+				dir.Attr = model.ATTR_NOTREAD
+				dir.Files = nil
+				node.Value = dir
+				l.Collapse()
+				ShowDir(model.CurrentPath, l.SelectedNode(), false)
+			}
 		case "Rune[*]", "Shift+Rune[*]":
 			RefreshTreeNodeRecource(l.SelectedNode())
 			l.ExpandRecursive()
