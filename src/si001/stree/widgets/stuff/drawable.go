@@ -3,6 +3,7 @@ package stuff
 import (
 	"github.com/gdamore/tcell"
 	runewidth "github.com/mattn/go-runewidth"
+	"image"
 )
 
 type Drawable interface {
@@ -44,6 +45,22 @@ func ScreenPrintAtTween(s tcell.Screen, x, y, xTo int, style1 tcell.Style, style
 	for i := x; i <= xTo; i++ {
 		s.SetContent(i, y, ' ', nil, style2)
 	}
+}
+
+func ScreenDrawLine(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, r1, r, r2 rune) {
+	dx, dy := 0, 0
+	if x1 < x2 {
+		dx = 1
+	} else {
+		dy = 1
+	}
+	for x, y := x1, y1; x < x2 || y < y2; {
+		s.SetContent(x, y, r, nil, style)
+		x += dx
+		y += dy
+	}
+	s.SetContent(x1, y1, r1, nil, style)
+	s.SetContent(x2, y2, r2, nil, style)
 }
 
 func ScreenDrawBox(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, r rune) {
@@ -91,7 +108,26 @@ func ScreenFillBox(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, r rune
 	}
 }
 
-func ScreenDrawScrolled(s tcell.Screen, x, y1, y2, y3 int, style tcell.Style) {
+func ScreenDrawScrolled(s tcell.Screen, inner image.Rectangle, dy2 float32, upArrow, downArrow bool, style tcell.Style) {
+	// draw scroller
+	x := inner.Min.X - 1
+	y1 := inner.Min.Y
+	y3 := inner.Max.Y
+	y2 := y1 + int((float32(y3-y1+1))*dy2)
+	// draw UP_ARROW if needed
+	if upArrow {
+		ScreenPrintAt(s, x, y1, style, string(UP_ARROW))
+		y1++
+	}
+	// draw DOWN_ARROW if needed
+	if downArrow {
+		ScreenPrintAt(s, x, y3, style, string(DOWN_ARROW))
+		y3--
+	}
+	y2 = y1 + int((float32(y3-y1+1))*dy2)
+	if y2 > y3 {
+		y2 = y3
+	}
 	for i := y1; i <= y3; i++ {
 		if i == y2 {
 			s.SetContent(x, i, tcell.RuneBlock, nil, style)

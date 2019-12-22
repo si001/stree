@@ -11,3 +11,5 @@ var Root Directory
 var Divider int
 
 var SelectedStyle tcell.Style
+
+var ScreenWidth, ScreenHeight int

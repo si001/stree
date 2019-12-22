@@ -145,20 +145,30 @@ func (self *Tree) walk(n *TreeNode, fn TreeWalkFn) bool {
 	return true
 }
 
+func (self *Tree) ScrollToMouse(x, y int) {
+	sel := y - self.Min.Y + self.topRow - 1
+	if sel < 0 {
+		sel = 0
+	} else if sel >= len(self.rows) {
+		sel = len(self.rows) - 1
+	}
+	self.SelectedRow = sel
+}
+
 func (self *Tree) Draw(s tcell.Screen) {
 	self.Block.Draw(s)
 	point := self.Inner.Min
 
 	// adjusts view into widget
 	if self.SelectedRow >= self.Inner.Dy()+self.topRow {
-		self.topRow = self.SelectedRow - self.Inner.Dy() + 1
+		self.topRow = self.SelectedRow - self.Inner.Dy()
 	} else if self.SelectedRow < self.topRow {
 		self.topRow = self.SelectedRow
 	}
 
 	var nodePath string
 	// draw rows
-	for row := self.topRow; row < len(self.rows) && point.Y < self.Inner.Max.Y; row++ {
+	for row := self.topRow; row < len(self.rows) && point.Y <= self.Inner.Max.Y; row++ {
 		style := self.TextStyle
 		if row == self.SelectedRow {
 			style = self.SelectedRowStyle
@@ -173,21 +183,8 @@ func (self *Tree) Draw(s tcell.Screen) {
 		point = image.Pt(self.Inner.Min.X, point.Y+1)
 	}
 
-	// draw scroller
-	y1 := self.Inner.Min.Y
-	y3 := self.Inner.Max.Y - 1
-	// draw UP_ARROW if needed
-	if self.topRow > 0 {
-		stuff.ScreenPrintAt(s, self.Inner.Min.X-1, y1, self.BorderStyle, string(stuff.UP_ARROW))
-		y1++
-	}
-	// draw DOWN_ARROW if needed
-	if len(self.rows) > int(self.topRow)+self.Inner.Dy() {
-		stuff.ScreenPrintAt(s, self.Inner.Min.X-1, y3, self.BorderStyle, string(stuff.DOWN_ARROW))
-		y3--
-	}
-	y2 := y1 + int((float32(y3-y1+1))*(float32(self.SelectedRow)/float32(len(self.rows))))
-	stuff.ScreenDrawScrolled(s, self.Inner.Min.X-1, y1, y2, y3, self.BorderStyle)
+	dy2 := float32(self.SelectedRow) / float32(len(self.rows))
+	stuff.ScreenDrawScrolled(s, self.Inner, dy2, self.topRow > 0, len(self.rows) > int(self.topRow)+self.Inner.Dy()+1, self.BorderStyle)
 }
 
 // ScrollAmount scrolls by amount given. If amount is < 0, then scroll up.
@@ -210,12 +207,30 @@ func (self *Tree) SelectedNode() *TreeNode {
 	return self.rows[self.SelectedRow]
 }
 
+func (self *Tree) ScrollScreenUp() {
+	if self.topRow > 0 {
+		self.topRow--
+		if self.SelectedRow-self.topRow > self.Inner.Dy() {
+			self.SelectedRow--
+		}
+	}
+}
+
 func (self *Tree) ScrollUp() {
 	self.ScrollAmount(-1)
 }
 
 func (self *Tree) ScrollDown() {
 	self.ScrollAmount(1)
+}
+
+func (self *Tree) ScrollScreenDown() {
+	if self.topRow < len(self.rows)-1 {
+		self.topRow++
+		if self.topRow > self.SelectedRow {
+			self.SelectedRow++
+		}
+	}
 }
 
 func (self *Tree) ScrollPageUp() {

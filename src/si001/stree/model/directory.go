@@ -18,7 +18,7 @@ func (dir Directory) String() string {
 
 func (dir Directory) ParsePatch(node *widgets.TreeNode) (path, value string) {
 	var sb strings.Builder
-	if dir.Attr == ATTR_NOTREAD {
+	if dir.IsNotRead() {
 		sb.WriteRune(stuff.HORIZONTAL_DASH)
 	} else if len(node.Nodes) == 0 {
 		sb.WriteRune(' ')

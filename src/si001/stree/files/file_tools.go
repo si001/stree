@@ -10,8 +10,8 @@ import (
 
 func newDir(nm string, parent *widgets.TreeNode) (dir *widgets.TreeNode) {
 	dir = newDirFI(model.FileInfo{
-		Name: nm,
-		Attr: model.ATTR_NOTREAD,
+		Name:  nm,
+		AttrB: model.ATTR_NOTREAD,
 	}, parent)
 	return dir
 }
@@ -63,17 +63,18 @@ func ReadDir(node *widgets.TreeNode) model.Directory /*, []model.Directory*/ {
 	dir := node.Value.(model.Directory)
 	osfiles, err := ioutil.ReadDir(path)
 	if err != nil {
-		dir.FileInfo.Name = err.Error()
-		dir.FileInfo.Attr = model.ATTR_ERR_MESSAGE
+		dir.FileInfo.AttrB = model.ATTR_ERR_MESSAGE
+		node.Value = dir
 		return dir
 	} else {
-		dir.FileInfo.Attr = model.ATTR_DIR
+		dir.FileInfo.AttrB = model.ATTR_DIR
 		for _, file := range osfiles {
-			fInfo := model.FileInfo{Name: file.Name(), Size: file.Size(), ModTime: file.ModTime(), Attr: model.ATTR_FILE}
+			fInfo := model.FileInfo{Name: file.Name(), Size: file.Size(), ModTime: file.ModTime(), AttrB: model.ATTR_FILE, Owner: node}
 			if file.IsDir() {
-				fInfo.Attr = model.ATTR_NOTREAD
+				fInfo.AttrB = model.ATTR_NOTREAD
 				newDirFI(fInfo, node)
 			} else {
+				fInfo.AttrB = model.ATTR_FILE
 				dir.Files = append(dir.Files, &fInfo)
 			}
 		}

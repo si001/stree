@@ -71,3 +71,7 @@ func (self *Block) SetRect(x1, y1, x2, y2 int) {
 func (self *Block) GetRect() image.Rectangle {
 	return self.Rectangle
 }
+
+func (self *Block) CheckIn(x, y int) bool {
+	return x >= self.Min.X && x <= self.Max.X && y >= self.Min.Y && y <= self.Max.Y
+}

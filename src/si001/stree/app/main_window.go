@@ -1,26 +1,30 @@
 package app
 
 import (
-	//ui "github.com/gizak/termui/v3"
-	//"github.com/nsf/termbox-go"
-
+	"fmt"
 	"github.com/gdamore/tcell"
 	"github.com/gdamore/tcell/encoding"
-	"time"
-
-	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"si001/stree/files"
 	"si001/stree/model"
 	"si001/stree/screen"
 	"si001/stree/widgets/stuff"
+	"time"
 )
 
 var defStyle tcell.Style
 
 func ShowMain() {
 	encoding.Register()
+	if runtime.GOOS == "windows" {
+		screen.FileMask1 = "*.*"
+		screen.FileMask2 = "*.*"
+	} else {
+		screen.FileMask1 = "*"
+		screen.FileMask2 = "*"
+	}
 
 	s, err := tcell.NewScreen()
 	if err != nil {
@@ -46,12 +50,12 @@ func ShowMain() {
 	screen.Tree1 = files.BuildTree(dir)
 
 	model.CurrentPath = files.TreeNodeToPath(screen.Tree1.SelectedNode())
-	screen.HeadLeft = model.CurrentPath
-	screen.ShowDir(model.CurrentPath, screen.Tree1.SelectedNode(), false)
+	//screen.HeadLeft = model.CurrentPath
+	screen.ShowDir(model.CurrentPath, screen.Tree1.SelectedNode(), false, false)
 
 	model.SelectedStyle = tcell.StyleDefault.Background(tcell.ColorBlue).Foreground(tcell.ColorWhite).Normal()
 	w, h := s.Size()
-	model.Divider = int(float32(h-2-screen.VC_BOTTOM_HEIGHT)*0.7) + 2
+	model.Divider = int(float32(h-2-screen.VC_BOTTOM_HEIGHT)*0.25) + 2
 
 	tickerCount := 0
 	draw(s, tickerCount)
@@ -111,6 +115,7 @@ func processEvent(event tcell.Event) {
 
 var draw = func(s tcell.Screen, count int) {
 	w, h := s.Size()
+	model.ScreenWidth, model.ScreenHeight = w, h
 	stuff.ScreenFillBox(s, 0, 0, w, h, tcell.StyleDefault, ' ')
 	switch screen.ViewMode {
 	case screen.VM_TREEVIEW_FILES_1:
