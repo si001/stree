@@ -18,7 +18,7 @@ func newDir(nm string, parent *widgets.TreeNode) (dir *widgets.TreeNode) {
 
 func newDirFI(fInfo model.FileInfo, parent *widgets.TreeNode) (dir *widgets.TreeNode) {
 	dir = &widgets.TreeNode{
-		Value: model.Directory{
+		Value: &model.Directory{
 			FileInfo: fInfo,
 			Parent:   parent,
 		},
@@ -55,12 +55,12 @@ func GetRoot() (r *widgets.TreeNode) {
 	return r
 }
 
-func ReadDir(node *widgets.TreeNode) model.Directory /*, []model.Directory*/ {
+func ReadDir(node *widgets.TreeNode) *model.Directory /*, []model.Directory*/ {
 	path := TreeNodeToPath(node)
 	if model.PathDivider == "\\" && len(path) == 2 && path[1] == ':' {
 		path += model.PathDivider
 	}
-	dir := node.Value.(model.Directory)
+	dir := node.Value.(*model.Directory)
 	osfiles, err := ioutil.ReadDir(path)
 	if err != nil {
 		dir.FileInfo.AttrB = model.ATTR_ERR_MESSAGE

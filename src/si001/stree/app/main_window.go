@@ -5,12 +5,14 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/gdamore/tcell/encoding"
 	"log"
+	"math"
 	"os"
 	"runtime"
 	"si001/stree/files"
 	"si001/stree/model"
 	"si001/stree/screen"
-	"si001/stree/widgets/stuff"
+	"si001/stree/screen/tree_list"
+	"si001/stree/widgets"
 	"time"
 )
 
@@ -18,12 +20,18 @@ var defStyle tcell.Style
 
 func ShowMain() {
 	encoding.Register()
+	screen.TreeAndList1 = tree_list.TreeAndList{
+		List:         widgets.NewList(),
+		Tree:         nil,
+		FileMode:     0,
+		FileMask:     "*",
+		ListIsBranch: false,
+		OrderBy:      model.OrderAcs | model.OrderByName,
+	}
+	screen.TreeAndList1.Init()
+
 	if runtime.GOOS == "windows" {
-		screen.FileMask1 = "*.*"
-		screen.FileMask2 = "*.*"
-	} else {
-		screen.FileMask1 = "*"
-		screen.FileMask2 = "*"
+		screen.TreeAndList1.FileMask = "*.*"
 	}
 
 	s, err := tcell.NewScreen()
@@ -47,15 +55,15 @@ func ShowMain() {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	screen.Tree1 = files.BuildTree(dir)
+	screen.TreeAndList1.Tree = files.BuildTree(dir)
 
-	model.CurrentPath = files.TreeNodeToPath(screen.Tree1.SelectedNode())
+	model.CurrentPath = files.TreeNodeToPath(screen.TreeAndList1.Tree.SelectedNode())
 	//screen.HeadLeft = model.CurrentPath
-	screen.ShowDir(model.CurrentPath, screen.Tree1.SelectedNode(), false, false)
+	screen.TreeAndList1.ShowDir(model.CurrentPath, screen.TreeAndList1.Tree.SelectedNode(), false)
 
 	model.SelectedStyle = tcell.StyleDefault.Background(tcell.ColorBlue).Foreground(tcell.ColorWhite).Normal()
 	w, h := s.Size()
-	model.Divider = int(float32(h-2-screen.VC_BOTTOM_HEIGHT)*0.25) + 2
+	screen.TreeAndList1.Divider = int(math.Max(5, float64(h-model.VC_BOTTOM_HEIGHT+4)*0.25))
 
 	tickerCount := 0
 	draw(s, tickerCount)
@@ -102,26 +110,4 @@ func ShowMain() {
 
 		draw(s, tickerCount)
 	}
-}
-
-func processEvent(event tcell.Event) {
-	switch screen.ViewMode {
-	case screen.VM_TREEVIEW_FILES_1:
-		screen.ModetreePutEvent(event)
-	case screen.VM_FILELIST_1:
-		screen.ModefilesPutEvent(event)
-	}
-}
-
-var draw = func(s tcell.Screen, count int) {
-	w, h := s.Size()
-	model.ScreenWidth, model.ScreenHeight = w, h
-	stuff.ScreenFillBox(s, 0, 0, w, h, tcell.StyleDefault, ' ')
-	switch screen.ViewMode {
-	case screen.VM_TREEVIEW_FILES_1:
-		screen.ModetreeDraw(s, w, h)
-	case screen.VM_FILELIST_1:
-		screen.ModefilesDraw(s, w, h)
-	}
-	s.Show()
 }

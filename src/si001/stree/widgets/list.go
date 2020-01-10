@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gdamore/tcell"
 	"si001/stree/widgets/stuff"
+	"sort"
 )
 
 type List struct {
@@ -14,11 +15,12 @@ type List struct {
 	topRow           int
 	columns          int
 	SelectedRowStyle tcell.Style
+	TaggedRowStyle   tcell.Style
 	StyleNumber      int
 }
 
 type ItemStringer interface {
-	ItemString(styleNumber, maxWidth int) string
+	ItemString(styleNumber, maxWidth int) (value string, tagged bool)
 }
 
 type Styler interface {
@@ -31,10 +33,14 @@ func NewList() *List {
 		Block:            *stuff.NewBlock(),
 		TextStyle:        stuff.Theme.Tree.Text,
 		SelectedRowStyle: stuff.Theme.Tree.Text.Foreground(tcell.ColorWhite).Background(tcell.ColorBlue),
+		TaggedRowStyle:   stuff.Theme.Tree.Text.Foreground(tcell.ColorYellow),
 	}
 }
 
 func (self *List) ScrollToMouse(x, y int) {
+	if self.columns <= 0 {
+		return
+	}
 	sel := y - self.Min.Y + self.topRow - 1
 	if sel < 0 {
 		sel = 0
@@ -59,11 +65,16 @@ func (self *List) Draw(s tcell.Screen) {
 		self.topRow = self.SelectedRow
 	}
 
+	if len(self.Rows) == 0 || self.topRow < 0 {
+		return
+	}
+
 	row := self.topRow
 	x := point.X
 	cellWidth := 1
 	col := 0
-	for x < self.Inner.Max.X-cellWidth/2 {
+	for x < self.Inner.Max.X-cellWidth*3/4 {
+		cellWidth = 1
 		// draw rows
 		point.Y = self.Inner.Min.Y
 		for ; row < len(self.Rows) && point.Y <= self.Inner.Max.Y; row++ {
@@ -84,7 +95,11 @@ func (self *List) Draw(s tcell.Screen) {
 			}
 			var itemStr string
 			if itemStrgr, ok := (*r).(ItemStringer); ok {
-				itemStr = itemStrgr.ItemString(self.StyleNumber, self.Inner.Dx())
+				var tagged bool
+				itemStr, tagged = itemStrgr.ItemString(self.StyleNumber, self.Inner.Dx())
+				if tagged && row != self.SelectedRow {
+					style = self.TaggedRowStyle
+				}
 			} else {
 				itemStr = (*r).String()
 			}
@@ -92,11 +107,13 @@ func (self *List) Draw(s tcell.Screen) {
 			if cellWidth < lng {
 				cellWidth = lng
 			}
-			stuff.ScreenPrintAtTween(s, x, point.Y, x+len(itemStr), style, style, "", itemStr)
+			stuff.ScreenPrintAtTween(s, x, point.Y, x+len([]rune(itemStr)), style, style, "", itemStr)
 			point.Y++
 		}
 		x += cellWidth
-		col++
+		if cellWidth > 1 { // i.e. strings are exists
+			col++
+		}
 	}
 	self.columns = col
 
@@ -125,13 +142,13 @@ func (self *List) ScrollDown() {
 func (self *List) ScrollPageUp() {
 	// If an item is selected below top row, then go to the top row.
 	if self.SelectedRow > self.topRow {
-		self.SelectedRow = self.topRow
-	} else {
 		if self.columns > 1 {
 			self.ScrollAmount(-self.Inner.Dy() - 1)
 		} else {
-			self.ScrollAmount(-self.Inner.Dy())
+			self.SelectedRow = self.topRow
 		}
+	} else {
+		self.ScrollAmount(-self.Inner.Dy())
 	}
 }
 
@@ -157,4 +174,16 @@ func (self *List) ScrollTop() {
 
 func (self *List) ScrollBottom() {
 	self.SelectedRow = len(self.Rows) - 1
+}
+
+func (self *List) SelectedStringer() (res *fmt.Stringer) {
+	if len(self.Rows) <= self.SelectedRow || self.SelectedRow < 0 {
+		return nil
+	} else {
+		return self.Rows[self.SelectedRow]
+	}
+}
+
+func (self *List) SetOrderComparator(comparator func(val1, val2 int) bool) {
+	sort.Slice(self.Rows, comparator)
 }

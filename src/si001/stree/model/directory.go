@@ -16,7 +16,7 @@ func (dir Directory) String() string {
 	return dir.Name
 }
 
-func (dir Directory) ParsePatch(node *widgets.TreeNode) (path, value string) {
+func (dir *Directory) ParsePatch(node *widgets.TreeNode) (path, value string) {
 	var sb strings.Builder
 	if dir.IsNotRead() {
 		sb.WriteRune(stuff.HORIZONTAL_DASH)
@@ -37,8 +37,14 @@ func (dir Directory) ParsePatch(node *widgets.TreeNode) (path, value string) {
 	return path, value
 }
 
+func (dir *Directory) SetSelected(sel bool) {
+	for _, f := range dir.Files {
+		f.SetTagged(sel)
+	}
+}
+
 func createPathRecourse(sb *strings.Builder, node *widgets.TreeNode, lastLevel bool) {
-	dir, _ := node.Value.(Directory)
+	dir, _ := node.Value.(*Directory)
 	if dir.Parent != nil {
 		nodeP := dir.Parent
 		createPathRecourse(sb, nodeP, false)

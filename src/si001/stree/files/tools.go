@@ -9,7 +9,7 @@ import (
 func TreeNodeToPath(node *widgets.TreeNode) (result string) {
 	for {
 		result = model.PathDivider + node.Value.String() + result
-		node = node.Value.(model.Directory).Parent
+		node = node.Value.(*model.Directory).Parent
 		if node == nil {
 			break
 		}

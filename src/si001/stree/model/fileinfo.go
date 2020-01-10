@@ -4,57 +4,115 @@ import (
 	"fmt"
 	"si001/stree/widgets"
 	"strconv"
+	"strings"
 	"time"
 )
 
+type AttrFile byte
+
 const (
-	ATTR_NOTREAD     byte = 1
-	ATTR_FILE        byte = 2
-	ATTR_DIR         byte = 4
-	ATTR_ARCH        byte = 16
-	ATTR_SELECTED    byte = 32
-	ATTR_ERR_MESSAGE byte = 255
+	ATTR_NOTREAD AttrFile = 1 << iota
+	ATTR_FILE
+	ATTR_DIR
+	ATTR_ARCH
+	ATTR_SELECTED
+	ATTR_ERR_MESSAGE = 255
+)
+
+const (
+	OrderByUndefined byte = 0 + iota
+	OrderByName
+	OrderByExt
+	OrderBySize
+	OrderByDate
+	OrderAcs    = 0x40
+	OrderByPath = 0x80
+	OrderMask   = 0x0f
 )
 
 type FileInfo struct {
 	Name    string
 	Size    int64
 	ModTime time.Time
-	AttrB   byte
+	AttrB   AttrFile
 	Owner   *widgets.TreeNode
 }
 
-func (self FileInfo) IsDir() bool {
-	return self.AttrB == ATTR_DIR
+func (fi *FileInfo) IsDir() bool {
+	return fi.AttrB == ATTR_DIR
 }
 
-func (self FileInfo) IsNotRead() bool {
-	return (self.AttrB & ATTR_NOTREAD) > 0
+func (fi *FileInfo) IsNotRead() bool {
+	return (fi.AttrB & ATTR_NOTREAD) > 0
 }
 
-func (self FileInfo) IsReadError() bool {
-	return self.AttrB == ATTR_ERR_MESSAGE
+func (fi *FileInfo) IsReadError() bool {
+	return fi.AttrB == ATTR_ERR_MESSAGE
+
+}
+
+func (fi *FileInfo) SetTagged(sel bool) {
+	if sel {
+		fi.AttrB = fi.AttrB | ATTR_SELECTED
+	} else {
+		fi.AttrB = fi.AttrB | ATTR_SELECTED ^ ATTR_SELECTED
+	}
+}
+
+func (fi *FileInfo) IsTagged() bool {
+	return fi.AttrB&ATTR_SELECTED > 0
 }
 
 // as fmt.Stringer
-func (self FileInfo) String() string {
-	return self.Name
+func (fi *FileInfo) String() string {
+	return fi.Name
 }
 
 // as widgets.ItemStringer
-func (self FileInfo) ItemString(styleNumber, maxWidth int) string {
+func (fi *FileInfo) ItemString(styleNumber, maxWidth int) (value string, tagged bool) {
 	r := ""
+	var fs string
+	if fi.IsTagged() {
+		fs = CharSelector
+	} else {
+		fs = " "
+	}
 	switch styleNumber {
 	case 0:
-		r = fmt.Sprintf(" %s%"+strconv.Itoa(maxWidth-len([]rune(self.Name))-39)+"s%12s %4s %19s", self.Name, " ", parseSize(self.Size), parseAttr(self.AttrB), parseTime(self.ModTime))
+		r = fmt.Sprintf("%s%s  ", fs, fi.Name)
 	case 1:
-		r = fmt.Sprintf(" %s%"+strconv.Itoa(maxWidth/2-len([]rune(self.Name))-14)+"s%12s ", self.Name, " ", parseSize(self.Size))
+		cw := 30
+		d := maxWidth / cw
+		cw = maxWidth/d - 15
+		txt := cropStringTo(fi.Name, cw)
+		r = fmt.Sprintf("%s%s% 12s ", fs, txt, parseSize(fi.Size))
 	case 2:
-		r = fmt.Sprintf(" %s%"+strconv.Itoa(maxWidth/3-len([]rune(self.Name))-2)+"s", self.Name, " ")
+		cw := maxWidth/2 - 41 + 5
+		txt := cropStringTo(fi.Name, cw)
+		r = fmt.Sprintf("%s%s %12s %19s ", fs, txt, parseSize(fi.Size), parseTime(fi.ModTime))
+		//r = fmt.Sprintf(" %s %12s %4s %19s ", txt, parseSize(self.Size), parseAttr(self.AttrB), parseTime(self.ModTime))
 	case 3:
-		r = fmt.Sprintf(" %s%"+strconv.Itoa(maxWidth-len([]rune(self.Name))-2)+"s", self.Name, " ")
+		cw := maxWidth - 41 + 4
+		txt := cropStringTo(fi.Name, cw)
+		r = fmt.Sprintf("%s%s %12s  %19s", fs, txt, parseSize(fi.Size), parseTime(fi.ModTime))
+		//r = fmt.Sprintf(" %s %12s %4s %19s", txt, parseSize(self.Size), parseAttr(self.AttrB), parseTime(self.ModTime))
+		//case 4:
+		//	r = fmt.Sprintf(" %s%"+strconv.Itoa(maxWidth-len([]rune(self.Name))-2)+"s", self.Name, " ")
 	}
-	return r
+	return r, fi.IsTagged()
+}
+
+func cropStringTo(str string, maxLen int) string {
+	if maxLen < 0 {
+		return "►"
+	}
+	txt := string([]rune(str + strings.Repeat(" ", maxLen))[:maxLen])
+	if len([]rune(str)) > maxLen {
+		txt += "►" //string(tcell.RuneRArrow)
+	} else {
+		txt += " "
+	}
+	return txt
 }
 
 func parseTime(dt time.Time) string {
@@ -62,7 +120,6 @@ func parseTime(dt time.Time) string {
 }
 
 func parseAttr(a byte) string {
-
 	return strconv.Itoa(int(a))
 }
 
@@ -83,10 +140,12 @@ func parseSize(i int64) (s string) {
 		l := len(s)
 		s = s[:l-6] + "," + s[l-6:]
 		s = s[:l-2] + "," + s[l-2:]
-	} else if i > 999 {
+	} else {
 		s = fmt.Sprintf("%d", i)
-		l := len(s)
-		s = s[:l-3] + "," + s[l-3:]
+		if i > 999 {
+			l := len(s)
+			s = s[:l-3] + "," + s[l-3:]
+		}
 	}
 	return s
 }

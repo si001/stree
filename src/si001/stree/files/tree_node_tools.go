@@ -13,7 +13,7 @@ import (
 
 func NodeGetFiles(node *widgets.TreeNode) []*model.FileInfo {
 	switch d := node.Value.(type) {
-	case model.Directory:
+	case *model.Directory:
 		return d.Files
 	}
 	return nil
