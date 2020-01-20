@@ -1,6 +1,8 @@
 package files
 
 import (
+	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -61,6 +63,7 @@ func ReadDir(node *widgets.TreeNode) *model.Directory /*, []model.Directory*/ {
 		path += model.PathDivider
 	}
 	dir := node.Value.(*model.Directory)
+	dir.Files = []*model.FileInfo{}
 	osfiles, err := ioutil.ReadDir(path)
 	if err != nil {
 		dir.FileInfo.AttrB = model.ATTR_ERR_MESSAGE
@@ -81,33 +84,69 @@ func ReadDir(node *widgets.TreeNode) *model.Directory /*, []model.Directory*/ {
 		node.Value = dir
 		return dir
 	}
-
 }
 
-//func GetDirectory(path string) *widgets.TreeNode{
-//	osfiles, err := ioutil.ReadDir(path)
-//	if err != nil {
-//		log.Fatal(err)
-//		return nil
-//	} else {
-//		dir := model.Directory{
-//			FileInfo: model.FileInfo{
-//				Name: path,
-//				Attr: 1,
-//			}}
-//		node := widgets.TreeNode{
-//			Value: dir,
-//		}
-//		for _, file := range osfiles {
-//			fInfo := model.FileInfo{Name: file.Name(), Size: file.Size(), ModTime: file.ModTime()}
-//			if file.IsDir() {
-//				fInfo.Attr = 1
-//				dInfo := newDirFI(fInfo, &node)
-//				node.Nodes = append(node.Nodes, dInfo)
-//			} else {
-//				dir.Files = append(dir.Files, &fInfo)
-//			}
-//		}
-//		return &dir
-//	}
-//}
+func FileRename(oldName, newName string) error {
+	err := os.Rename(oldName, newName)
+	return err
+}
+
+// CopyFile copies a file from src to dst. If src and dst files exist, and are
+// the same, then return success. Otherise, attempt to create a hard link
+// between the two files. If that fail, copy the file contents from src to dst.
+func FileCopy(src, dst string) (err error) {
+	sfi, err := os.Stat(src)
+	if err != nil {
+		return
+	}
+	if !sfi.Mode().IsRegular() {
+		// cannot copy non-regular files (e.g., directories,
+		// symlinks, devices, etc.)
+		return fmt.Errorf("CopyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String())
+	}
+	dfi, err := os.Stat(dst)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return
+		}
+	} else {
+		if !(dfi.Mode().IsRegular()) {
+			return fmt.Errorf("CopyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String())
+		}
+		if os.SameFile(sfi, dfi) {
+			return
+		}
+	}
+	if err = os.Link(src, dst); err == nil {
+		return
+	}
+	err = copyFileContents(src, dst)
+	return
+}
+
+// copyFileContents copies the contents of the file named src to the file named
+// by dst. The file will be created if it does not already exist. If the
+// destination file exists, all it contents will be replaced by the contents
+// of the source file.
+func copyFileContents(src, dst string) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return
+	}
+	err = out.Sync()
+	return
+}

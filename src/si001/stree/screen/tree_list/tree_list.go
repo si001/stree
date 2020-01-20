@@ -7,7 +7,6 @@ import (
 	"si001/stree/model"
 	"si001/stree/screen/botton_box"
 	"si001/stree/widgets"
-	"strings"
 )
 
 type TreeAndList struct {
@@ -25,19 +24,23 @@ func (self *TreeAndList) ShowDir(s string, node *widgets.TreeNode, actualise boo
 	var rows []*fmt.Stringer
 	if !self.ListIsBranch && node.Value.(*model.Directory).IsReadError() {
 		errStyle := tcell.StyleDefault.Foreground(tcell.ColorRed)
-		var row fmt.Stringer = model.InfoString{"Directory is not read, Read Error!", errStyle, errStyle}
+		var row fmt.Stringer = model.InfoString{" Directory is not read, Read Error!", errStyle, errStyle}
 		rows = append(rows, &row)
 	} else if !self.ListIsBranch && node.Value.(*model.Directory).IsNotRead() {
-		var row fmt.Stringer = model.InfoString{"Directory is not read", tcell.StyleDefault, tcell.StyleDefault}
+		var row fmt.Stringer = model.InfoString{" Directory is not read", tcell.StyleDefault, tcell.StyleDefault}
 		rows = append(rows, &row)
 	} else if !self.ListIsBranch && len(node.Value.(*model.Directory).Files) == 0 {
-		var row fmt.Stringer = model.InfoString{"No files", tcell.StyleDefault, tcell.StyleDefault}
+		var row fmt.Stringer = model.InfoString{" No files", tcell.StyleDefault, tcell.StyleDefault}
 		rows = append(rows, &row)
 	} else {
 		var nodes []*widgets.TreeNode
 		nodes = append(nodes, node)
 
 		rows = append(rows, self.getFilesRecourse(nodes, self.ListIsBranch)...)
+		if len(rows) == 0 {
+			var row fmt.Stringer = model.InfoString{" No files matching filespec", tcell.StyleDefault, tcell.StyleDefault}
+			rows = append(rows, &row)
+		}
 	}
 
 	self.List.StyleNumber = self.FileMode
@@ -69,12 +72,27 @@ func (self *TreeAndList) processNextFileMode() {
 	}
 }
 
-func filterProcessed(s, f string) bool {
-	if f == "*.*" || f == "*" {
-		return true
+func filterProcessed(str, mask string) bool {
+	s, p := []rune(str), []rune(mask)
+	rs, rp := []rune{}, []rune{}
+	for {
+		if len(p) > 0 && p[0] == '*' {
+			rs = s
+			p = p[1:]
+			rp = p
+		} else if len(s) == 0 {
+			return len(p) == 0
+		} else if len(s) > 0 && len(p) > 0 && (s[0] == p[0] || p[0] == '?') {
+			s = s[1:]
+			p = p[1:]
+		} else if len(rs) > 0 {
+			rs = rs[1:]
+			s = rs
+			p = rp
+		} else {
+			return false
+		}
 	}
-	res := strings.Contains(s, f)
-	return res
 }
 
 func (self *TreeAndList) Init() {

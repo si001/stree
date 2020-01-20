@@ -24,6 +24,28 @@ func ScreenPrintAt(s tcell.Screen, x, y int, style tcell.Style, str string) {
 		x += w
 	}
 }
+
+func ScreenPrintWithSecondStyleAt(s tcell.Screen, x, y int, style, style2 tcell.Style, str string, prefix rune) {
+	var comb []rune
+	stl := style
+	for _, c := range str {
+		comb = nil
+		w := runewidth.RuneWidth(c)
+		if w == 0 {
+			comb = []rune{c}
+			c = ' '
+			w = 1
+		}
+		if prefix != c {
+			s.SetContent(x, y, c, comb, stl)
+			stl = style
+			x += w
+		} else {
+			stl = style2
+		}
+	}
+}
+
 func ScreenPrintStr(s tcell.Screen, x, y int, style tcell.Style, str string) int {
 	var comb []rune
 	for _, c := range str {

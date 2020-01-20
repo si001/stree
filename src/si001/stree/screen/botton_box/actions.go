@@ -6,12 +6,6 @@ type Action struct {
 	Callback func()
 }
 
-//type Action interface {
-//	Name() string
-//	Key() string
-//	Doing() func()
-//}
-
 func (a Action) Name() string {
 	return a.ActName
 }

@@ -4,6 +4,8 @@ import (
 	"github.com/gdamore/tcell"
 )
 
+const AppName = "STreeGo"
+
 const CharSelector = "●"
 
 var PathDivider = "?"
@@ -12,9 +14,9 @@ var Root Directory
 var SelectedStyle tcell.Style
 var ScreenWidth, ScreenHeight int
 
-var DEBUG = true
-
 type VmType int
+
+var AppFinished = false
 
 const (
 	VM_TREEVIEW_FILES_1 VmType = 1 + iota

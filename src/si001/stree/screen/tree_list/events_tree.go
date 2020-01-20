@@ -5,13 +5,14 @@ import (
 	"github.com/gdamore/tcell"
 	"si001/stree/files"
 	"si001/stree/model"
-	"si001/stree/screen/botton_box"
 	"si001/stree/widgets"
 	"strings"
 )
 
 var mouseLastEvent *tcell.EventMouse
 var mouseClickTimerForDbl int64
+var mouseLastSelectedRow int
+var mouseTagging bool
 
 func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 	l := self.Tree
@@ -22,7 +23,7 @@ func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 		toLastEvent := ev
 		switch ev.Buttons() {
 		case tcell.Button1:
-			if ev.Buttons()&mouseLastEvent.Buttons() == 0 {
+			if mouseLastEvent != nil && ev.Buttons()&mouseLastEvent.Buttons() == 0 {
 				var ms int64 = ev.When().UnixNano() / 1000000
 				if ms-mouseClickTimerForDbl < 400 {
 					if node.Value.(*model.Directory).IsNotRead() {
@@ -52,6 +53,20 @@ func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 					toLastEvent = mouseLastEvent
 				}
 			}
+		case tcell.Button2:
+			_, y := ev.Position()
+			if l.CheckIn(ev.Position()) && y != l.Min.Y && y != l.Max.Y {
+				if mouseLastSelectedRow < 0 {
+					mouseLastSelectedRow = y
+					l.ScrollToMouse(ev.Position())
+					mouseTagging = checkIsTagged(l.SelectedNode())
+				} else {
+					l.ScrollToMouse(ev.Position())
+				}
+				setTagDir(self, !mouseTagging, false)
+			}
+		case tcell.ButtonNone:
+			mouseLastSelectedRow = -1
 		case tcell.WheelUp:
 			l.ScrollUp()
 		case tcell.WheelDown:
@@ -90,15 +105,6 @@ func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 			l.ScrollPageDown()
 		case tcell.KeyPgUp:
 			l.ScrollPageUp()
-		case tcell.KeyF3:
-			node := l.SelectedNode()
-			files.ReadDir(node)
-			self.ShowDir(model.CurrentPath, node, false)
-			l.Expand()
-		case tcell.KeyF5:
-			pressedF5(l)
-		case tcell.KeyF6:
-			pressedF6(l)
 		case tcell.KeyEnter:
 			if node.Value.(*model.Directory).IsNotRead() {
 				files.ReadDir(node)
@@ -142,38 +148,16 @@ func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 				l.Expand()
 			}
 		case "rune[-]", "shift+rune[-]":
+			node := l.SelectedNode()
+			node.Nodes = nil
+			dir := node.Value.(*model.Directory)
+			dir.AttrB = model.ATTR_NOTREAD | model.ATTR_DIR
+			dir.Files = nil
+			node.Value = dir
 			if l.SelectedNode().Expanded {
-				node := l.SelectedNode()
-				node.Nodes = nil
-				dir := node.Value.(model.Directory)
-				dir.AttrB = model.ATTR_NOTREAD | model.ATTR_DIR
-				dir.Files = nil
-				node.Value = dir
 				l.Collapse()
-				self.ShowDir(model.CurrentPath, l.SelectedNode(), false)
 			}
-		case "rune[*]", "shift+rune[*]":
-			RefreshTreeNodeRecource(l.SelectedNode())
-			l.ExpandRecursive()
-		case "rune[ ]":
-			//if (node.Value.(model.Directory).Attr & model.ATTR_NOTREAD) > 0 {
-			//	files.ReadDir(node)
-			//	ShowDir(model.CurrentPath, node, false)
-			//	l.Expand()
-			//} else if !l.SelectedNode().Expanded && len(l.SelectedNode().Nodes) > 0 {
-			//	l.Expand()
-			//} else {
-			l.ScrollDown()
-		//}
-		case "alt+rune[f]", "rune[d]":
-			self.processNextFileMode()
-		case "rune[f]":
-			botton_box.RequestFileMask(self.FileMask, self.setFileMask)
-		case "rune[b]":
-			ViewModeChange(model.VM_FILELIST_1)
-			self.ListIsBranch = true
 			self.ShowDir(model.CurrentPath, l.SelectedNode(), false)
-			self.List.ScrollTop()
 		}
 		model.LastEvent = ev.Name()
 	}
@@ -192,24 +176,17 @@ func (self *TreeAndList) pathCheck() {
 	}
 }
 
-func RefreshTreeNodeRecource(node *widgets.TreeNode) {
-	files.ReadDir(node)
-	for _, n := range node.Nodes {
-		RefreshTreeNodeRecource(n)
-	}
-}
-
-func pressedF6(tree *widgets.Tree) {
-	node := tree.SelectedNode()
+func (self *TreeAndList) pressedF6() {
+	node := self.Tree.SelectedNode()
 	if node.Expanded {
-		tree.Collapse()
+		self.Tree.Collapse()
 	} else {
-		tree.ExpandRecursive()
+		self.Tree.ExpandRecursive()
 	}
 }
 
-func pressedF5(tree *widgets.Tree) {
-	node := tree.SelectedNode()
+func (self *TreeAndList) pressedF5() {
+	node := self.Tree.SelectedNode()
 	allExpanded := true && node.Expanded
 	if allExpanded {
 		for _, n := range node.Nodes {
@@ -220,8 +197,15 @@ func pressedF5(tree *widgets.Tree) {
 		}
 	}
 	if allExpanded {
-		tree.CollapseOneLevel()
+		self.Tree.CollapseOneLevel()
 	} else {
-		tree.ExpandRecursive()
+		self.Tree.ExpandRecursive()
+	}
+}
+
+func RefreshTreeNodeRecource(node *widgets.TreeNode) {
+	files.ReadDir(node)
+	for _, n := range node.Nodes {
+		RefreshTreeNodeRecource(n)
 	}
 }

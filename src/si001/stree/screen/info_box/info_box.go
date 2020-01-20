@@ -24,14 +24,15 @@ func ShowInfoBox(s tcell.Screen, fileMode int, fileMask, path string) {
 	stuff.ScreenPrintAt(s, w-22, 0, style, tm)
 
 	// file mask
-	stuff.ScreenPrintAt(s, w-23, 2, style, "MASK "+fileMask)
+	stuff.ScreenPrintAt(s, w-23, 2, style, ""+fileMask)
 	//stuff.ScreenPrintAt(s, w-5, 2, style, "F:"+strconv.Itoa(fileMode))
 
 	stuff.ScreenDrawLine(s, w-model.VC_INFO_WIDTH, 3, w-1, 3, style, tcell.RuneLTee, tcell.RuneHLine, tcell.RuneRTee)
 
 	// logged bytes
 
-	if model.DEBUG {
-		stuff.ScreenPrintAt(s, 80, h-3, style, model.LastEvent)
-	}
+	//if model.DEBUG {
+	//	stuff.ScreenPrintAt(s, 80, h-3, style, model.LastEvent)
+	//}
+	stuff.ScreenPrintAt(s, w-13, h-1, style, "STreeGo V0.1")
 }

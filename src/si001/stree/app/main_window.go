@@ -28,11 +28,14 @@ func ShowMain() {
 		ListIsBranch: false,
 		OrderBy:      model.OrderAcs | model.OrderByName,
 	}
-	screen.TreeAndList1.Init()
-
 	if runtime.GOOS == "windows" {
 		screen.TreeAndList1.FileMask = "*.*"
+		model.PathDivider = "\\"
+	} else {
+		model.PathDivider = "/"
 	}
+	files.ReadSettings()
+	screen.TreeAndList1.Init()
 
 	s, err := tcell.NewScreen()
 	if err != nil {
@@ -77,7 +80,7 @@ func ShowMain() {
 	}
 	tim = time.AfterFunc(time.Second, callback)
 
-	for {
+	for !model.AppFinished {
 		//select {
 		//case ev := <- s.PollEvent():
 		event := s.PollEvent()
@@ -93,8 +96,6 @@ func ShowMain() {
 			processEvent(event)
 		case *tcell.EventKey:
 			switch {
-			case ev.Rune() == 'q':
-				return
 			default:
 				processEvent(event)
 			}
@@ -110,4 +111,5 @@ func ShowMain() {
 
 		draw(s, tickerCount)
 	}
+	files.WriteSettings()
 }

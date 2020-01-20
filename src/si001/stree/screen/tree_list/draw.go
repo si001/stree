@@ -52,10 +52,10 @@ func (self *TreeAndList) drawListOnly(s tcell.Screen, w, h int) {
 		} else {
 			path = files.TreeNodeToPath(fi.Owner)
 		}
-		fileName = path + model.PathDivider + fileS.String()
-		if len([]rune(fileName)) > w-30 {
-			c := len([]rune(model.PathDivider + fileS.String()))
-			fileName = string(([]rune(fileName)[:int(math.Max(0, float64(w-30-c-3)))])) + "***" + model.PathDivider + (fileS).String()
+		fileName = path
+		length := len([]rune(fileName))
+		if length > w-30 && length > 12 {
+			fileName = string([]rune(fileName)[:7]) + "***" + string(([]rune(fileName)[int(math.Max(10, float64(35+length-w))):]))
 		}
 	} else {
 		fileName = ""

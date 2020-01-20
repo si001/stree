@@ -1,9 +1,10 @@
-package botton_box
+package actions
 
 import (
 	"fmt"
 	"github.com/gdamore/tcell"
 	"si001/stree/model"
+	"si001/stree/screen/botton_box"
 	"si001/stree/widgets/stuff"
 	"strings"
 )
@@ -46,7 +47,7 @@ func (self *boxOrderBy) ProcessEvent(event tcell.Event) bool {
 	case *tcell.EventKey:
 		switch strings.ToLower(ev.Name()) {
 		case "esc":
-			NormalBottomBox()
+			botton_box.NormalBottomBox()
 			return true
 		case "rune[p]", "shift+rune[p]":
 			self.orderBy = self.orderBy ^ model.OrderByPath
@@ -76,7 +77,7 @@ func (self *boxOrderBy) ProcessEvent(event tcell.Event) bool {
 	}
 	if result != model.OrderByUndefined {
 		self.orderByCallback(result)
-		NormalBottomBox()
+		botton_box.NormalBottomBox()
 		return true
 	}
 	return true

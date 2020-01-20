@@ -5,8 +5,6 @@ import (
 	"github.com/gdamore/tcell"
 	"si001/stree/files"
 	"si001/stree/model"
-	"si001/stree/screen/botton_box"
-	"strings"
 )
 
 func (self *TreeAndList) PutEventList(event tcell.Event) bool {
@@ -22,16 +20,6 @@ func (self *TreeAndList) PutEventList(event tcell.Event) bool {
 		case tcell.Button1:
 			if ev.Buttons()&mouseLastEvent.Buttons() == 0 {
 				var ms int64 = ev.When().UnixNano() / 1000000
-				if ms-mouseClickTimerForDbl < 400 {
-					//if (node.Value.(model.Directory).Attr & model.ATTR_NOTREAD) > 0 {
-					//	files.ReadDir(node)
-					//	ShowDir(model.CurrentPath, node, false)
-					//	l.Expand()
-					//} else if len(node.Value.(model.Directory).Files) > 0 {
-					//	ViewMode = VM_FILELIST_1
-					//	FilesList1.ScrollTop()
-					//}
-				}
 				mouseClickTimerForDbl = ms
 				_, y := ev.Position()
 				if l.CheckIn(ev.Position()) && y != l.Min.Y && y != l.Max.Y {
@@ -45,6 +33,20 @@ func (self *TreeAndList) PutEventList(event tcell.Event) bool {
 					toLastEvent = mouseLastEvent
 				}
 			}
+		case tcell.Button2:
+			_, y := ev.Position()
+			if l.CheckIn(ev.Position()) && y != l.Min.Y && y != l.Max.Y {
+				if mouseLastSelectedRow < 0 {
+					mouseLastSelectedRow = y
+					l.ScrollToMouse(ev.Position())
+					mouseTagging = (*l.SelectedStringer()).(*model.FileInfo).IsTagged()
+				} else {
+					l.ScrollToMouse(ev.Position())
+				}
+				setTagFile(self, !mouseTagging, false)
+			}
+		case tcell.ButtonNone:
+			mouseLastSelectedRow = -1
 		case tcell.WheelUp:
 			l.ScrollUp()
 		case tcell.WheelDown:
@@ -78,14 +80,8 @@ func (self *TreeAndList) PutEventList(event tcell.Event) bool {
 			//	x, y := ui.TerminalDimensions()
 			//	l.SetRect(0, 0, x, y)
 		}
-		switch strings.ToLower(ev.Name()) {
-		case "alt+rune[s]", "rune[s]":
-			botton_box.RequestOrderBy(self.OrderBy, self.setOrderBy)
-		case "alt+rune[f]", "rune[d]":
-			self.processNextFileMode()
-		case "rune[f]":
-			botton_box.RequestFileMask(self.FileMask, self.setFileMask)
-		}
+		//switch strings.ToLower(ev.Name()) {
+		//}
 		model.LastEvent = ev.Name()
 	}
 
