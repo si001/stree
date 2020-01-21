@@ -17,7 +17,6 @@ func BuildTree(path string) *widgets.Tree {
 	var nodePath []*widgets.TreeNode
 	var root widgets.TreeNode
 	var dir *widgets.TreeNode
-	//fmt.Println("path: ", path)
 	for i, dirNm := range ph {
 		if i == 0 {
 			if dirNm == "" {
@@ -39,7 +38,6 @@ func BuildTree(path string) *widgets.Tree {
 
 	}
 	var l = widgets.NewTree()
-	//l.TextStyle = ui.NewStyle(ui.ColorYellow, ui.ColorBlack, ui.ModifierClear)
 	l.WrapText = false
 	l.SetNodes(root.Nodes)
 	l.ScrollTop()
@@ -51,13 +49,8 @@ func BuildTree(path string) *widgets.Tree {
 		for node != l.SelectedNode() && counter > 0 {
 			l.ScrollDown()
 			counter--
-
-			//fmt.Println("counter: ", counter, l.SelectedRow, "|", l.SelectedNode().Value.String(), " - ", node.Value.String())
 		}
 		l.Expand()
-		//fmt.Println(">: ", node.Value.String(), " - ", l.SelectedNode().Value.String())
 	}
-	//time.Sleep(time.Second * 9)
-
 	return l
 }

@@ -8,8 +8,12 @@ import (
 
 type Directory struct {
 	FileInfo
-	Parent *widgets.TreeNode
-	Files  []*FileInfo
+	Parent   *widgets.TreeNode
+	Files    []*FileInfo
+	Count    int32
+	Size     int64
+	TagCount int32
+	TagSize  int64
 }
 
 func (dir Directory) String() string {

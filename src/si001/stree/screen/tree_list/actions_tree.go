@@ -65,8 +65,36 @@ func (self *TreeAndList) actionsTree() {
 			ActName: "`* read branch",
 			ActKey:  "rune[*]",
 			Callback: func() {
-				RefreshTreeNodeRecource(self.Tree.SelectedNode())
+				files.RefreshTreeNode(self.Tree.SelectedNode())
 				self.Tree.ExpandRecursive()
+			},
+		},
+		botton_box.Action{
+			ActName: "",
+			ActKey:  "rune[+]",
+			Callback: func() {
+				l := self.Tree
+				node := l.SelectedNode()
+				if node.Value.(*model.Directory).IsNotRead() {
+					files.ReadDir(node)
+					self.ShowDir(model.CurrentPath, node, false)
+					l.Expand()
+				} else if !l.SelectedNode().Expanded && len(l.SelectedNode().Nodes) > 0 {
+					l.Expand()
+				}
+			},
+		},
+		botton_box.Action{
+			ActName: "",
+			ActKey:  "rune[-]",
+			Callback: func() {
+				l := self.Tree
+				node := l.SelectedNode()
+				files.CloseDir(node)
+				if l.SelectedNode().Expanded {
+					l.Collapse()
+				}
+				self.ShowDir(model.CurrentPath, l.SelectedNode(), false)
 			},
 		},
 		botton_box.Action{

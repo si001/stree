@@ -85,16 +85,16 @@ func (fi *FileInfo) ItemString(styleNumber, maxWidth int) (value string, tagged 
 		d := maxWidth / cw
 		cw = maxWidth/d - 15
 		txt := cropStringTo(fi.Name, cw)
-		r = fmt.Sprintf("%s%s% 12s ", fs, txt, parseSize(fi.Size))
+		r = fmt.Sprintf("%s%s% 12s ", fs, txt, ParseSize(fi.Size))
 	case 2:
 		cw := maxWidth/2 - 41 + 5
 		txt := cropStringTo(fi.Name, cw)
-		r = fmt.Sprintf("%s%s %12s %19s ", fs, txt, parseSize(fi.Size), parseTime(fi.ModTime))
+		r = fmt.Sprintf("%s%s %12s %19s ", fs, txt, ParseSize(fi.Size), ParseTime(fi.ModTime))
 		//r = fmt.Sprintf(" %s %12s %4s %19s ", txt, parseSize(self.Size), parseAttr(self.AttrB), parseTime(self.ModTime))
 	case 3:
 		cw := maxWidth - 41 + 4
 		txt := cropStringTo(fi.Name, cw)
-		r = fmt.Sprintf("%s%s %12s  %19s", fs, txt, parseSize(fi.Size), parseTime(fi.ModTime))
+		r = fmt.Sprintf("%s%s %12s  %19s", fs, txt, ParseSize(fi.Size), ParseTime(fi.ModTime))
 		//r = fmt.Sprintf(" %s %12s %4s %19s", txt, parseSize(self.Size), parseAttr(self.AttrB), parseTime(self.ModTime))
 		//case 4:
 		//	r = fmt.Sprintf(" %s%"+strconv.Itoa(maxWidth-len([]rune(self.Name))-2)+"s", self.Name, " ")
@@ -115,7 +115,7 @@ func cropStringTo(str string, maxLen int) string {
 	return txt
 }
 
-func parseTime(dt time.Time) string {
+func ParseTime(dt time.Time) string {
 	return dt.Format("02.01.2006 15:04:05")
 }
 
@@ -123,7 +123,7 @@ func parseAttr(a byte) string {
 	return strconv.Itoa(int(a))
 }
 
-func parseSize(i int64) (s string) {
+func ParseSize(i int64) (s string) {
 	if i > 999999999 {
 		i /= 1000
 		if i > 999999999 {

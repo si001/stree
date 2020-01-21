@@ -328,3 +328,7 @@ func (self *Tree) CollapseAll() {
 	})
 	self.prepareNodes()
 }
+
+func (self *Tree) GetRoot() []*TreeNode {
+	return self.nodes
+}

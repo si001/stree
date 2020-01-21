@@ -5,8 +5,6 @@ import (
 	"github.com/gdamore/tcell"
 	"si001/stree/files"
 	"si001/stree/model"
-	"si001/stree/widgets"
-	"strings"
 )
 
 var mouseLastEvent *tcell.EventMouse
@@ -137,28 +135,6 @@ func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 				l.ScrollUp()
 			}
 		}
-
-		switch strings.ToLower(ev.Name()) {
-		case "rune[+]", "shift+rune[+]":
-			if node.Value.(*model.Directory).IsNotRead() {
-				files.ReadDir(node)
-				self.ShowDir(model.CurrentPath, node, false)
-				l.Expand()
-			} else if !l.SelectedNode().Expanded && len(l.SelectedNode().Nodes) > 0 {
-				l.Expand()
-			}
-		case "rune[-]", "shift+rune[-]":
-			node := l.SelectedNode()
-			node.Nodes = nil
-			dir := node.Value.(*model.Directory)
-			dir.AttrB = model.ATTR_NOTREAD | model.ATTR_DIR
-			dir.Files = nil
-			node.Value = dir
-			if l.SelectedNode().Expanded {
-				l.Collapse()
-			}
-			self.ShowDir(model.CurrentPath, l.SelectedNode(), false)
-		}
 		model.LastEvent = ev.Name()
 	}
 
@@ -200,12 +176,5 @@ func (self *TreeAndList) pressedF5() {
 		self.Tree.CollapseOneLevel()
 	} else {
 		self.Tree.ExpandRecursive()
-	}
-}
-
-func RefreshTreeNodeRecource(node *widgets.TreeNode) {
-	files.ReadDir(node)
-	for _, n := range node.Nodes {
-		RefreshTreeNodeRecource(n)
 	}
 }
