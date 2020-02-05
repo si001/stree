@@ -29,7 +29,17 @@ func (self *TreeAndList) actionsTree() {
 			Callback: func() {
 				ViewModeChange(model.VM_FILELIST_1)
 				self.ListIsBranch = true
-				self.ShowDir(model.CurrentPath, self.Tree.SelectedNode(), false)
+				self.ShowDir(model.CurrentPath, self.Tree.SelectedNode(), false, false)
+				self.List.ScrollTop()
+			},
+		},
+		botton_box.Action{
+			ActName: "`Ctl+`Branch",
+			ActKey:  "ctrl+b",
+			Callback: func() {
+				ViewModeChange(model.VM_FILELIST_1)
+				self.ListIsBranch = true
+				self.ShowDir(model.CurrentPath, self.Tree.SelectedNode(), true, false)
 				self.List.ScrollTop()
 			},
 		},
@@ -47,6 +57,13 @@ func (self *TreeAndList) actionsTree() {
 				self.processNextFileMode()
 			},
 		},
+		botton_box.Action{
+			ActName: "`Log path",
+			ActKey:  "rune[l]",
+			Callback: func() {
+				self.actionLog()
+			},
+		},
 		botton_box.Action{ // new line
 			ActName: "",
 			ActKey:  "",
@@ -57,27 +74,29 @@ func (self *TreeAndList) actionsTree() {
 			Callback: func() {
 				node := self.Tree.SelectedNode()
 				files.ReadDir(node)
-				self.ShowDir(model.CurrentPath, node, false)
+				self.ShowDir(model.CurrentPath, node, false, false)
 				self.Tree.Expand()
 			},
 		},
 		botton_box.Action{
-			ActName: "`* read branch",
-			ActKey:  "rune[*]",
+			ActName:      "`* read branch",
+			ActKey:       "rune[*]",
+			PrefixPermit: "shift+",
 			Callback: func() {
 				files.RefreshTreeNode(self.Tree.SelectedNode())
 				self.Tree.ExpandRecursive()
 			},
 		},
 		botton_box.Action{
-			ActName: "",
-			ActKey:  "rune[+]",
+			ActName:      "",
+			ActKey:       "rune[+]",
+			PrefixPermit: "shift+",
 			Callback: func() {
 				l := self.Tree
 				node := l.SelectedNode()
 				if node.Value.(*model.Directory).IsNotRead() {
 					files.ReadDir(node)
-					self.ShowDir(model.CurrentPath, node, false)
+					self.ShowDir(model.CurrentPath, node, false, false)
 					l.Expand()
 				} else if !l.SelectedNode().Expanded && len(l.SelectedNode().Nodes) > 0 {
 					l.Expand()
@@ -85,8 +104,9 @@ func (self *TreeAndList) actionsTree() {
 			},
 		},
 		botton_box.Action{
-			ActName: "",
-			ActKey:  "rune[-]",
+			ActName:      "",
+			ActKey:       "rune[-]",
+			PrefixPermit: "shift+",
 			Callback: func() {
 				l := self.Tree
 				node := l.SelectedNode()
@@ -94,7 +114,7 @@ func (self *TreeAndList) actionsTree() {
 				if l.SelectedNode().Expanded {
 					l.Collapse()
 				}
-				self.ShowDir(model.CurrentPath, l.SelectedNode(), false)
+				self.ShowDir(model.CurrentPath, l.SelectedNode(), false, false)
 			},
 		},
 		botton_box.Action{

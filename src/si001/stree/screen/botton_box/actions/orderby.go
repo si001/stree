@@ -17,8 +17,9 @@ type boxOrderBy struct {
 func (self *boxOrderBy) Draw(s tcell.Screen) {
 	_, h := s.Size()
 	style := tcell.Style(0).Foreground(tcell.ColorDefault).Background(tcell.ColorDefault)
+	style2 := tcell.Style(0).Foreground(tcell.ColorYellow).Background(tcell.ColorDefault)
 
-	stuff.ScreenPrintAt(s, 1, h-2, style, "OrderBy: Name, Ext, Size, Date/Time")
+	stuff.ScreenPrintWithSecondStyleAt(s, 1, h-2, style, style2, "OrderBy: `Name, `Ext, `Size, `Date/Time", '`')
 
 	var strPath string
 	if self.orderBy&model.OrderByPath > 0 {
@@ -32,7 +33,7 @@ func (self *boxOrderBy) Draw(s tcell.Screen) {
 	} else {
 		strAcc = "Descending"
 	}
-	stuff.ScreenPrintAt(s, 1, h-1, style, fmt.Sprintf("         Path: %s  Order: %s", strPath, strAcc))
+	stuff.ScreenPrintWithSecondStyleAt(s, 1, h-1, style, style2, fmt.Sprintf("         `Path: %s  `Order: %s", strPath, strAcc), '`')
 }
 
 func (self *boxOrderBy) ProcessEvent(event tcell.Event) bool {
@@ -55,12 +56,12 @@ func (self *boxOrderBy) ProcessEvent(event tcell.Event) bool {
 		case "rune[o]", "shift+rune[o]":
 			self.orderBy = self.orderBy ^ model.OrderAcs
 			return true
-		case "rune[a]":
-			self.orderBy = self.orderBy | model.OrderAcs
-			return true
-		case "shift+rune[a]":
-			self.orderBy = self.orderBy | model.OrderAcs ^ model.OrderAcs
-			return true
+		//case "rune[a]":
+		//	self.orderBy = self.orderBy | model.OrderAcs
+		//	return true
+		//case "shift+rune[a]":
+		//	self.orderBy = self.orderBy | model.OrderAcs ^ model.OrderAcs
+		//	return true
 		case "rune[s]", "shift+rune[s]":
 			self.orderBy = self.orderBy | model.OrderMask ^ model.OrderMask | model.OrderBySize
 			result = self.orderBy

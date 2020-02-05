@@ -64,20 +64,27 @@ func (self *TreeAndList) actionsList() {
 			},
 		},
 		botton_box.Action{
+			ActName: "`Log path",
+			ActKey:  "rune[l]",
+			Callback: func() {
+				self.actionLog()
+			},
+		},
+		botton_box.Action{
 			ActName: "",
 			ActKey:  "",
 			Callback: func() {
 			},
 		},
 		botton_box.Action{
-			ActName: "`Ctrl+`Tag all",
+			ActName: "`Ctl+`Tag all",
 			ActKey:  "ctrl+t",
 			Callback: func() {
 				setTagAllFiles(self, true)
 			},
 		},
 		botton_box.Action{
-			ActName: "`Ctrl+`Untag all",
+			ActName: "`Ctl+`Untag all",
 			ActKey:  "ctrl+u",
 			Callback: func() {
 				setTagAllFiles(self, false)

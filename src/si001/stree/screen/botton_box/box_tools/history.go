@@ -3,16 +3,16 @@ package box_tools
 import (
 	"fmt"
 	"github.com/gdamore/tcell"
-	"si001/stree/files"
+	"si001/stree/files/settings"
 	"si001/stree/widgets"
 )
 
-type historyTool struct {
-	historyId             string
-	left                  int
-	width                 int
+type HistoryTool struct {
+	HistoryId             string
+	Callback              func(res *string)
+	Left                  int
+	Width                 int
 	list                  *widgets.List
-	callback              func(res *string)
 	mouseLastEvent        *tcell.EventMouse
 	mouseClickTimerForDbl int64
 	mouseLastSelectedRow  int
@@ -25,16 +25,19 @@ func (hi historyItem) String() string {
 	return string(hi)
 }
 
-func (hst *historyTool) Draw(s tcell.Screen) {
-	_, h := s.Size()
+func (hst *HistoryTool) Draw(s tcell.Screen) {
+	w, h := s.Size()
 	//style := tcell.Style(0).Foreground(tcell.ColorDefault).Background(tcell.ColorDefault)
-	x, y := hst.left, 4
-	hst.list.SetRect(x, y, x+hst.width, h-3)
+	x, y := hst.Left, 4
+	if x == 0 {
+		x = (w - hst.Width) / 2
+	}
+	hst.list.SetRect(x, y, x+hst.Width, h-3)
 	hst.list.Draw(s)
 	s.HideCursor()
 }
 
-func (hst *historyTool) ProcessEvent(event tcell.Event) bool {
+func (hst *HistoryTool) ProcessEvent(event tcell.Event) bool {
 	switch ev := event.(type) {
 	case *tcell.EventResize:
 	case *tcell.EventMouse:
@@ -43,13 +46,16 @@ func (hst *historyTool) ProcessEvent(event tcell.Event) bool {
 		case tcell.Button1:
 			if ev.Buttons()&hst.mouseLastEvent.Buttons() == 0 {
 				var ms int64 = ev.When().UnixNano() / 1000000
+				var result string = (*hst.list.SelectedStringer()).String()
+				if ms-hst.mouseClickTimerForDbl < 400 {
+					hst.Callback(&result)
+				}
 				hst.mouseClickTimerForDbl = ms
 				_, y := ev.Position()
 				if hst.list.CheckIn(ev.Position()) && y != hst.list.Min.Y && y != hst.list.Max.Y {
 					hst.list.ScrollToMouse(ev.Position())
 				} else {
-					var result string = (*hst.list.SelectedStringer()).String()
-					hst.callback(&result)
+					hst.Callback(&result)
 				}
 			} else {
 				if hst.list.CheckIn(ev.Position()) || hst.list.CheckIn(hst.mouseLastEvent.Position()) {
@@ -58,7 +64,7 @@ func (hst *historyTool) ProcessEvent(event tcell.Event) bool {
 				}
 			}
 		case tcell.Button2:
-			hst.callback(nil)
+			hst.Callback(nil)
 		case tcell.ButtonNone:
 			hst.mouseLastSelectedRow = -1
 		case tcell.WheelUp:
@@ -72,7 +78,7 @@ func (hst *historyTool) ProcessEvent(event tcell.Event) bool {
 	case *tcell.EventKey:
 		switch ev.Key() {
 		case tcell.KeyEsc:
-			hst.callback(nil)
+			hst.Callback(nil)
 		case tcell.KeyEnter:
 			var s string
 			sr := hst.list.SelectedStringer()
@@ -81,7 +87,7 @@ func (hst *historyTool) ProcessEvent(event tcell.Event) bool {
 			} else {
 				s = ""
 			}
-			hst.callback(&s)
+			hst.Callback(&s)
 		case tcell.KeyDelete:
 			if hst.list.SelectedRow >= 0 && hst.list.SelectedRow < len(hst.list.Rows) {
 				hst.list.Rows = append(hst.list.Rows[:hst.list.SelectedRow], hst.list.Rows[hst.list.SelectedRow+1:]...)
@@ -103,16 +109,23 @@ func (hst *historyTool) ProcessEvent(event tcell.Event) bool {
 	return true
 }
 
-func (hst *historyTool) Init() {
+func (hst *HistoryTool) Init() {
 	hst.list = widgets.NewList()
-	s := files.ReadHistory(hst.historyId)
-	hst.width = 30
+	hst.list.SingleColumn = true
+	s := settings.ReadHistory(hst.HistoryId)
+	if hst.Width == 0 {
+		hst.Width = 30
+	}
 	for _, i := range s {
 		var hi fmt.Stringer = historyItem(i)
 		hst.list.Rows = append(hst.list.Rows, &hi)
-		if hst.width < len([]rune(i))+2 {
-			hst.width = len([]rune(i)) + 2
+		if hst.Width < len([]rune(i))+2 {
+			hst.Width = len([]rune(i)) + 2
 		}
 	}
-	hst.list.ScrollTop()
+	hst.list.ScrollBottom()
+}
+
+func (hst *HistoryTool) GetList() *widgets.List {
+	return hst.list
 }

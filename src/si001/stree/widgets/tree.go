@@ -135,13 +135,11 @@ func (self *Tree) walk(n *TreeNode, fn TreeWalkFn) bool {
 	if !fn(n) {
 		return false
 	}
-
 	for _, node := range n.Nodes {
 		if !self.walk(node, fn) {
 			return false
 		}
 	}
-
 	return true
 }
 
@@ -174,7 +172,6 @@ func (self *Tree) Draw(s tcell.Screen) {
 			style = self.SelectedRowStyle
 		}
 		node := self.rows[row]
-		//if (node.Value insta)
 		nodeString := node.parseStyles()
 		if patcher, ok := node.Value.(Patcher); ok {
 			nodePath, nodeString = patcher.ParsePatch(node)

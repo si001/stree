@@ -19,7 +19,7 @@ func (box *normalList) ProcessEvent(event tcell.Event) bool {
 	case *tcell.EventMouse:
 	case *tcell.EventKey:
 		for _, act := range box.actions {
-			if act.Key() == strings.ToLower(ev.Name()) || "shift+"+act.Key() == strings.ToLower(ev.Name()) {
+			if act.Key() == strings.ToLower(ev.Name()) || act.PrefixPermit+act.Key() == strings.ToLower(ev.Name()) {
 				act.Doing()()
 				return true
 			}

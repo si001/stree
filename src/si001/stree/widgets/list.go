@@ -5,6 +5,7 @@ import (
 	"github.com/gdamore/tcell"
 	"si001/stree/widgets/stuff"
 	"sort"
+	"strings"
 )
 
 type List struct {
@@ -17,6 +18,15 @@ type List struct {
 	SelectedRowStyle tcell.Style
 	TaggedRowStyle   tcell.Style
 	StyleNumber      int
+	SingleColumn     bool
+}
+
+type SimpleStringer struct {
+	Value string
+}
+
+func (s SimpleStringer) String() string {
+	return s.Value
 }
 
 type ItemStringer interface {
@@ -51,22 +61,30 @@ func (self *List) ScrollToMouse(x, y int) {
 	ww := x - self.Min.X
 	cl := ww / cw
 	sel += cl * (self.Inner.Dy() + 1)
+	if sel >= len(self.Rows) {
+		sel = len(self.Rows) - 1
+	}
 	self.SelectedRow = sel
 }
 
 func (self *List) Draw(s tcell.Screen) {
 	self.Block.Draw(s)
 
+	if len(self.Rows) == 0 {
+		return
+	}
 	point := self.Inner.Min
 
+	if self.topRow > len(self.Rows)-self.Inner.Dy() {
+		self.topRow = len(self.Rows) - self.Inner.Dy()
+	}
 	if self.SelectedRow >= (self.Inner.Dy()+1)*self.columns+self.topRow {
 		self.topRow = self.SelectedRow - (self.Inner.Dy()+1)*self.columns + 1
 	} else if self.SelectedRow < self.topRow {
 		self.topRow = self.SelectedRow
 	}
-
-	if len(self.Rows) == 0 || self.topRow < 0 {
-		return
+	if self.topRow < 0 {
+		self.topRow = 0
 	}
 
 	row := self.topRow
@@ -104,6 +122,10 @@ func (self *List) Draw(s tcell.Screen) {
 				itemStr = (*r).String()
 			}
 			lng := len([]rune(itemStr))
+			if self.SingleColumn && lng < self.Inner.Dx() {
+				itemStr += strings.Repeat(" ", self.Inner.Dx()-lng)
+				lng = self.Inner.Dx()
+			}
 			if cellWidth < lng {
 				cellWidth = lng
 			}
@@ -114,6 +136,9 @@ func (self *List) Draw(s tcell.Screen) {
 		if cellWidth > 1 { // i.e. strings are exists
 			col++
 		}
+	}
+	if col < 1 {
+		col = 1
 	}
 	self.columns = col
 
@@ -174,6 +199,7 @@ func (self *List) ScrollTop() {
 
 func (self *List) ScrollBottom() {
 	self.SelectedRow = len(self.Rows) - 1
+	self.topRow = self.SelectedRow - (self.Inner.Dy()+1)*self.columns + 1
 }
 
 func (self *List) SelectedStringer() (res *fmt.Stringer) {

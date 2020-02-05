@@ -149,3 +149,32 @@ func ParseSize(i int64) (s string) {
 	}
 	return s
 }
+
+func ParseSizeMax(i int64) (s string) {
+	if i > 999999999999 {
+		i /= 1000
+		d1 := i % 1000
+		d2 := i / 1000 % 1000
+		d3 := i / 1000000 % 1000
+		d4 := i / 1000000000 % 1000
+		s = fmt.Sprintf("%d,%d,%d,%dK", d4, d3, d2, d1)
+	} else if i > 999999999 {
+		d1 := i % 1000
+		d2 := i / 1000 % 1000
+		d3 := i / 1000000 % 1000
+		d4 := i / 1000000000 % 1000
+		s = fmt.Sprintf("%d,%d,%d,%d", d4, d3, d2, d1)
+	} else if i > 999999 {
+		s = fmt.Sprintf("%d", i)
+		l := len(s)
+		s = s[:l-6] + "," + s[l-6:]
+		s = s[:l-2] + "," + s[l-2:]
+	} else {
+		s = fmt.Sprintf("%d", i)
+		if i > 999 {
+			l := len(s)
+			s = s[:l-3] + "," + s[l-3:]
+		}
+	}
+	return s
+}

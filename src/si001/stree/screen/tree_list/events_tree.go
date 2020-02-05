@@ -5,6 +5,8 @@ import (
 	"github.com/gdamore/tcell"
 	"si001/stree/files"
 	"si001/stree/model"
+	"si001/stree/widgets"
+	"strings"
 )
 
 var mouseLastEvent *tcell.EventMouse
@@ -26,7 +28,7 @@ func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 				if ms-mouseClickTimerForDbl < 400 {
 					if node.Value.(*model.Directory).IsNotRead() {
 						files.ReadDir(node)
-						self.ShowDir(model.CurrentPath, node, false)
+						self.ShowDir(model.CurrentPath, node, false, false)
 						l.Expand()
 					} else if len(node.Value.(*model.Directory).Files) > 0 {
 						ViewModeChange(model.VM_FILELIST_1)
@@ -39,7 +41,7 @@ func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 				} else if self.List.CheckIn(ev.Position()) {
 					if node.Value.(*model.Directory).IsNotRead() {
 						files.ReadDir(node)
-						self.ShowDir(model.CurrentPath, node, false)
+						self.ShowDir(model.CurrentPath, node, false, false)
 						l.Expand()
 					}
 					ViewModeChange(model.VM_FILELIST_1)
@@ -106,7 +108,7 @@ func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 		case tcell.KeyEnter:
 			if node.Value.(*model.Directory).IsNotRead() {
 				files.ReadDir(node)
-				self.ShowDir(model.CurrentPath, node, false)
+				self.ShowDir(model.CurrentPath, node, false, false)
 				l.Expand()
 			} else if !node.Expanded && len(node.Nodes) > 0 {
 				l.Expand()
@@ -121,7 +123,7 @@ func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 		case tcell.KeyRight: //, "+":
 			if node.Value.(*model.Directory).IsNotRead() {
 				files.ReadDir(node)
-				self.ShowDir(model.CurrentPath, node, false)
+				self.ShowDir(model.CurrentPath, node, false, false)
 				l.Expand()
 			} else if !l.SelectedNode().Expanded && len(l.SelectedNode().Nodes) > 0 {
 				l.Expand()
@@ -132,7 +134,27 @@ func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 			if l.SelectedNode().Expanded {
 				l.Collapse()
 			} else {
-				l.ScrollUp()
+				node := l.SelectedNode()
+				parent := node.Value.(*model.Directory).Owner
+				for node.Value.(*model.Directory).Owner != nil && parent != node {
+					l.ScrollUp()
+					node = l.SelectedNode()
+				}
+			}
+		}
+		if strings.HasPrefix(ev.Name(), "Shift+Rune[") {
+			r := []rune(strings.ToLower(ev.Name()))[11]
+			start := l.SelectedNode()
+			n := l.SelectedNode()
+			var old *widgets.TreeNode = nil
+			for ([]rune(strings.ToLower(n.Value.String()))[0] != r && l.SelectedNode() != start) || old == nil {
+				l.ScrollDown()
+				old = n
+				n = l.SelectedNode()
+				if n == old {
+					l.ScrollTop()
+					n = l.SelectedNode()
+				}
 			}
 		}
 		model.LastEvent = ev.Name()
@@ -148,7 +170,7 @@ func (self *TreeAndList) pathCheck() {
 		model.CurrentPath = newPath
 
 		self.ListIsBranch = false
-		self.ShowDir(model.CurrentPath, self.Tree.SelectedNode(), false)
+		self.ShowDir(model.CurrentPath, self.Tree.SelectedNode(), false, false)
 	}
 }
 

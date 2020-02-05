@@ -7,6 +7,7 @@ import (
 	"si001/stree/model"
 	"si001/stree/screen/botton_box"
 	"si001/stree/widgets"
+	"strings"
 )
 
 type TreeAndList struct {
@@ -20,7 +21,7 @@ type TreeAndList struct {
 	CurrentPath  string
 }
 
-func (self *TreeAndList) ShowDir(s string, node *widgets.TreeNode, actualise bool) {
+func (self *TreeAndList) ShowDir(s string, node *widgets.TreeNode, taggedOnly, actualise bool) {
 	var rows []*fmt.Stringer
 	if !self.ListIsBranch && node.Value.(*model.Directory).IsReadError() {
 		errStyle := tcell.StyleDefault.Foreground(tcell.ColorRed)
@@ -36,7 +37,7 @@ func (self *TreeAndList) ShowDir(s string, node *widgets.TreeNode, actualise boo
 		var nodes []*widgets.TreeNode
 		nodes = append(nodes, node)
 
-		rows = append(rows, self.getFilesRecourse(nodes, self.ListIsBranch)...)
+		rows = append(rows, self.getFilesRecourse(nodes, taggedOnly, self.ListIsBranch)...)
 		if len(rows) == 0 {
 			var row fmt.Stringer = model.InfoString{" No files matching filespec", tcell.StyleDefault, tcell.StyleDefault}
 			rows = append(rows, &row)
@@ -48,17 +49,17 @@ func (self *TreeAndList) ShowDir(s string, node *widgets.TreeNode, actualise boo
 	self.ReSort()
 }
 
-func (self *TreeAndList) getFilesRecourse(nodes []*widgets.TreeNode, recourse bool) (rows []*fmt.Stringer) {
+func (self *TreeAndList) getFilesRecourse(nodes []*widgets.TreeNode, taggedOnly, recourse bool) (rows []*fmt.Stringer) {
 	for _, node := range nodes {
 		files := files.NodeGetFiles(node)
 		for _, item := range files {
-			if len(self.FileMask) == 0 || filterProcessed(item.Name, self.FileMask) {
+			if (len(self.FileMask) == 0 || filterProcessed(item.Name, self.FileMask)) && (!taggedOnly || item.IsTagged()) {
 				var row fmt.Stringer = item
 				rows = append(rows, &row)
 			}
 		}
 		if recourse {
-			rows = append(rows, self.getFilesRecourse(node.Nodes, true)...)
+			rows = append(rows, self.getFilesRecourse(node.Nodes, taggedOnly, true)...)
 		}
 	}
 	return rows
@@ -73,6 +74,9 @@ func (self *TreeAndList) processNextFileMode() {
 }
 
 func filterProcessed(str, mask string) bool {
+	if !strings.Contains(str, ".") {
+		str += "."
+	}
 	s, p := []rune(str), []rune(mask)
 	rs, rp := []rune{}, []rune{}
 	for {

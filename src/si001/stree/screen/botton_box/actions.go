@@ -1,9 +1,10 @@
 package botton_box
 
 type Action struct {
-	ActName  string
-	ActKey   string
-	Callback func()
+	ActName      string
+	ActKey       string
+	PrefixPermit string
+	Callback     func()
 }
 
 func (a Action) Name() string {

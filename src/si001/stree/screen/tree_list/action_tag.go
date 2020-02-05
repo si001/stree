@@ -1,6 +1,7 @@
 package tree_list
 
 import (
+	"si001/stree/files"
 	"si001/stree/model"
 	"si001/stree/widgets"
 )
@@ -11,7 +12,8 @@ type nullInterface interface {
 func setTagFile(tl *TreeAndList, set, step bool) {
 	s := tl.List.SelectedStringer()
 	if s != nil {
-		(*s).(*model.FileInfo).SetTagged(set)
+		fi := (*s).(*model.FileInfo)
+		setTagFileInfo(fi, set)
 		if step {
 			tl.List.ScrollAmount(1)
 		}
@@ -21,7 +23,7 @@ func setTagFile(tl *TreeAndList, set, step bool) {
 func setTagAllFiles(tl *TreeAndList, set bool) {
 	for _, s := range tl.List.Rows {
 		if s != nil {
-			(*s).(*model.FileInfo).SetTagged(set)
+			setTagFileInfo((*s).(*model.FileInfo), set)
 		}
 	}
 }
@@ -30,11 +32,30 @@ func setTagDir(tl *TreeAndList, set, step bool) {
 	s := tl.Tree.SelectedNode()
 	if s != nil {
 		f := *s
-		f.Value.(*model.Directory).SetSelected(set)
+		for _, f := range f.Value.(*model.Directory).Files {
+			setTagFileInfo(f, set)
+		}
 		if step {
 			tl.Tree.ScrollAmount(1)
 		}
 		tl.pathCheck()
+	}
+}
+
+func setTagFileInfo(fi *model.FileInfo, set bool) {
+	if fi.IsTagged() != set {
+		node := fi.Owner
+		dir := node.Value.(*model.Directory)
+		fi.SetTagged(set)
+		if set {
+			dir.TagCount++
+			dir.TagSize += fi.Size
+			files.PullDownFileInfoDeltaTag(node, 1, fi.Size)
+		} else {
+			dir.TagCount--
+			dir.TagSize -= fi.Size
+			files.PullDownFileInfoDeltaTag(node, -1, -fi.Size)
+		}
 	}
 }
 

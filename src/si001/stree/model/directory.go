@@ -8,7 +8,6 @@ import (
 
 type Directory struct {
 	FileInfo
-	Parent   *widgets.TreeNode
 	Files    []*FileInfo
 	Count    int32
 	Size     int64
@@ -33,7 +32,7 @@ func (dir *Directory) ParsePatch(node *widgets.TreeNode) (path, value string) {
 	}
 	createPathRecourse(&sb, node, true)
 	path = sb.String()
-	if dir.Parent == nil {
+	if dir.FileInfo.Owner == nil {
 		value = " " + dir.Name
 	} else {
 		value = string(stuff.HORIZONTAL_LINE) + dir.Name
@@ -41,16 +40,10 @@ func (dir *Directory) ParsePatch(node *widgets.TreeNode) (path, value string) {
 	return path, value
 }
 
-func (dir *Directory) SetSelected(sel bool) {
-	for _, f := range dir.Files {
-		f.SetTagged(sel)
-	}
-}
-
 func createPathRecourse(sb *strings.Builder, node *widgets.TreeNode, lastLevel bool) {
 	dir, _ := node.Value.(*Directory)
-	if dir.Parent != nil {
-		nodeP := dir.Parent
+	if dir.FileInfo.Owner != nil {
+		nodeP := dir.FileInfo.Owner
 		createPathRecourse(sb, nodeP, false)
 		last := nodeP.Nodes[len(nodeP.Nodes)-1] == node
 		if last {

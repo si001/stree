@@ -60,7 +60,7 @@ func (self *TreeAndList) drawListOnly(s tcell.Screen, w, h int) {
 	} else {
 		fileName = ""
 	}
-	info_box.ShowInfoBox(s, self.Tree.GetRoot(), self.Tree.SelectedNode(), self.FileMask, model.CurrentPath)
+	info_box.ShowInfoBox(s, self.Tree.GetRoot(), self.Tree.SelectedNode(), self.FileMask, fileName)
 
 	//stuff.ScreenPrintAt(s, 2, h-3, tcell.StyleDefault, "OB:"+strconv.Itoa(int(self.OrderBy)))
 }

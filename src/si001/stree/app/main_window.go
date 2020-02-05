@@ -9,6 +9,7 @@ import (
 	"os"
 	"runtime"
 	"si001/stree/files"
+	"si001/stree/files/settings"
 	"si001/stree/model"
 	"si001/stree/screen"
 	"si001/stree/screen/tree_list"
@@ -28,13 +29,15 @@ func ShowMain() {
 		ListIsBranch: false,
 		OrderBy:      model.OrderAcs | model.OrderByName,
 	}
+
 	if runtime.GOOS == "windows" {
 		screen.TreeAndList1.FileMask = "*.*"
 		model.PathDivider = "\\"
 	} else {
 		model.PathDivider = "/"
 	}
-	files.ReadSettings()
+
+	settings.ReadSettings()
 	screen.TreeAndList1.Init()
 
 	s, err := tcell.NewScreen()
@@ -58,11 +61,11 @@ func ShowMain() {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	screen.TreeAndList1.Tree = files.BuildTree(dir)
+	screen.TreeAndList1.Tree = files.LogTree(dir, widgets.NewTree())
 
 	model.CurrentPath = files.TreeNodeToPath(screen.TreeAndList1.Tree.SelectedNode())
 	//screen.HeadLeft = model.CurrentPath
-	screen.TreeAndList1.ShowDir(model.CurrentPath, screen.TreeAndList1.Tree.SelectedNode(), false)
+	screen.TreeAndList1.ShowDir(model.CurrentPath, screen.TreeAndList1.Tree.SelectedNode(), false, false)
 
 	model.SelectedStyle = tcell.StyleDefault.Background(tcell.ColorBlue).Foreground(tcell.ColorWhite).Normal()
 	w, h := s.Size()
@@ -111,5 +114,5 @@ func ShowMain() {
 
 		draw(s, tickerCount)
 	}
-	files.WriteSettings()
+	settings.WriteSettings()
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/gdamore/tcell"
 	"si001/stree/files"
 	"si001/stree/model"
+	"strings"
 )
 
 func (self *TreeAndList) PutEventList(event tcell.Event) bool {
@@ -66,7 +67,7 @@ func (self *TreeAndList) PutEventList(event tcell.Event) bool {
 			l.ScrollTop()
 			self.ListIsBranch = false
 			node := self.Tree.SelectedNode()
-			self.ShowDir(model.CurrentPath, node, false)
+			self.ShowDir(model.CurrentPath, node, false, false)
 		case tcell.KeyHome:
 			l.ScrollTop()
 		case tcell.KeyEnd:
@@ -75,13 +76,22 @@ func (self *TreeAndList) PutEventList(event tcell.Event) bool {
 			l.ScrollPageDown()
 		case tcell.KeyLeft, tcell.KeyPgUp:
 			l.ScrollPageUp()
-
-			//case "<Resize>":
-			//	x, y := ui.TerminalDimensions()
-			//	l.SetRect(0, 0, x, y)
 		}
-		//switch strings.ToLower(ev.Name()) {
-		//}
+		if strings.HasPrefix(ev.Name(), "Shift+Rune[") {
+			r := []rune(strings.ToLower(ev.Name()))[11]
+			start := l.SelectedStringer()
+			var old *fmt.Stringer = nil
+			n := l.SelectedStringer()
+			for ([]rune(strings.ToLower((*n).String()))[0] != r && l.SelectedStringer() != start) || old == nil {
+				l.ScrollDown()
+				old = n
+				n = l.SelectedStringer()
+				if n == old {
+					l.ScrollTop()
+					n = l.SelectedStringer()
+				}
+			}
+		}
 		model.LastEvent = ev.Name()
 	}
 
@@ -101,7 +111,7 @@ func (self *TreeAndList) setFileMask(mask string) {
 		mask = "*"
 	}
 	self.FileMask = mask
-	self.ShowDir(model.CurrentPath, self.Tree.SelectedNode(), false)
+	self.ShowDir(model.CurrentPath, self.Tree.SelectedNode(), false, false)
 }
 
 func (self *TreeAndList) ReSort() {
@@ -111,7 +121,7 @@ func (self *TreeAndList) ReSort() {
 		var compResult bool = true
 		switch self.OrderBy & model.OrderMask {
 		case model.OrderByName:
-			compResult = fi1.Name > fi2.Name
+			compResult = files.UpcaseIfWindows(fi1.Name) > files.UpcaseIfWindows(fi2.Name)
 		case model.OrderByExt:
 			compResult = fi1.Name > fi2.Name
 		case model.OrderBySize:

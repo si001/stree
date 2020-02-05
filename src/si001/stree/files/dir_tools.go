@@ -6,12 +6,14 @@ import (
 	"runtime"
 	"si001/stree/model"
 	"si001/stree/widgets"
+	"sort"
 )
 
 func newDir(nm string, parent *widgets.TreeNode) (dir *widgets.TreeNode) {
 	dir = newDirFI(model.FileInfo{
 		Name:  nm,
 		AttrB: model.ATTR_NOTREAD,
+		Owner: parent,
 	}, parent)
 	return dir
 }
@@ -20,7 +22,6 @@ func newDirFI(fInfo model.FileInfo, parent *widgets.TreeNode) (dir *widgets.Tree
 	dir = &widgets.TreeNode{
 		Value: &model.Directory{
 			FileInfo: fInfo,
-			Parent:   parent,
 		},
 	}
 	if parent != nil {
@@ -57,20 +58,26 @@ func GetRoot() (r *widgets.TreeNode) {
 
 func ReadDir(node *widgets.TreeNode) *model.Directory {
 	path := TreeNodeToPath(node)
+	return ReadDirPath(node, path)
+}
+func ReadDirPath(node *widgets.TreeNode, path string) *model.Directory {
 	if model.PathDivider == "\\" && len(path) == 2 && path[1] == ':' {
 		path += model.PathDivider
 	}
 	dir := node.Value.(*model.Directory)
-	oldSize := -dir.Size
-	oldCount := -dir.Count
-	dir.Count = 0
-	dir.Size = 0
+	ct, sz, tc, ts := calcCountSize(node)
+	oldSize := dir.Size
+	oldCount := dir.Count
+	oldTagSize := -ts
+	oldTagCount := -tc
+	dir.Count -= ct
+	dir.Size -= sz
 	dir.Files = []*model.FileInfo{}
 	osfiles, err := ioutil.ReadDir(path)
 	if err != nil {
 		dir.FileInfo.AttrB = model.ATTR_ERR_MESSAGE
 		node.Value = dir
-		pullDownFileInfoDelta(node, dir.Count-oldCount, dir.Size-oldSize)
+		pullDownFileInfoDelta(node, dir.Count-oldCount, dir.Size-oldSize, oldTagCount, oldTagSize)
 		return dir
 	} else {
 		dir.FileInfo.AttrB = model.ATTR_DIR
@@ -86,10 +93,27 @@ func ReadDir(node *widgets.TreeNode) *model.Directory {
 				dir.Size += fInfo.Size
 			}
 		}
+		sort.Slice(node.Nodes, func(i, j int) bool {
+			return UpcaseIfWindows(node.Nodes[i].Value.String()) < UpcaseIfWindows(node.Nodes[j].Value.String())
+		})
+
 		node.Value = dir
-		pullDownFileInfoDelta(node, dir.Count-oldCount, dir.Size-oldSize)
+		pullDownFileInfoDelta(node, dir.Count-oldCount, dir.Size-oldSize, oldTagCount, oldTagSize)
 		return dir
 	}
+}
+
+func calcCountSize(node *widgets.TreeNode) (int32, int64, int32, int64) {
+	var sz, ts int64 = 0, 0
+	var tc int32 = 0
+	for _, f := range node.Value.(*model.Directory).Files {
+		sz += f.Size
+		if f.IsTagged() {
+			tc++
+			ts += f.Size
+		}
+	}
+	return int32(len(node.Value.(*model.Directory).Files)), sz, tc, ts
 }
 
 func CloseDir(node *widgets.TreeNode) {
@@ -97,39 +121,49 @@ func CloseDir(node *widgets.TreeNode) {
 	dir := node.Value.(*model.Directory)
 	oldSize := -dir.Size
 	oldCount := -dir.Count
+	oldTagSize := -dir.TagSize
+	oldTagCount := -dir.TagCount
 	dir.AttrB = model.ATTR_NOTREAD | model.ATTR_DIR
 	dir.Files = nil
 	dir.Count = 0
 	dir.Size = 0
+	dir.TagCount = 0
+	dir.TagSize = 0
 	node.Value = dir
-	pullDownFileInfoDelta(node, oldCount, oldSize)
+	pullDownFileInfoDelta(node, oldCount, oldSize, oldTagCount, oldTagSize)
 }
 
-func pullDownFileInfoDelta(node *widgets.TreeNode, deltaCount int32, deltaSize int64) {
+func PullDownFileInfoDeltaTag(node *widgets.TreeNode, deltaTagCount int32, deltaTagSize int64) {
+	pullDownFileInfoDelta(node, 0, 0, deltaTagCount, deltaTagSize)
+}
+
+func pullDownFileInfoDelta(node *widgets.TreeNode, deltaCount int32, deltaSize int64, deltaTagCount int32, deltaTagSize int64) {
 	if node != nil {
 		for {
-			node = node.Value.(*model.Directory).Parent
+			node = node.Value.(*model.Directory).FileInfo.Owner
 			if node == nil {
 				break
 			}
 			dir := node.Value.(*model.Directory)
 			dir.Count += deltaCount
 			dir.Size += deltaSize
+			dir.TagCount += deltaTagCount
+			dir.TagSize += deltaTagSize
 		}
 	}
 }
 
+func SizeFiles(files []*model.FileInfo) int64 {
+	var sz int64 = 0
+	for _, fi := range files {
+		sz += fi.Size
+	}
+	return sz
+}
+
 func RefreshTreeNode(node *widgets.TreeNode) {
-	//dir := node.Value.(*model.Directory)
-	//deltaCount := dir.Count
-	//deltaSize := dir.Size
-	//for _, f := range dir.Files {
-	//	deltaCount--
-	//	deltaSize -= f.Size
-	//}
 	CloseDir(node)
 	RefreshTreeNodeRecource(node)
-	//pullDownFileInfoDelta(node, -deltaCount, -deltaSize)
 }
 
 func RefreshTreeNodeRecource(node *widgets.TreeNode) {

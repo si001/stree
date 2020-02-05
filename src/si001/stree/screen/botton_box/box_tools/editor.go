@@ -3,8 +3,9 @@ package box_tools
 import (
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
-	"si001/stree/files"
+	"si001/stree/files/settings"
 	"si001/stree/widgets/stuff"
+	"strings"
 )
 
 type BoxEditor struct {
@@ -17,7 +18,7 @@ type BoxEditor struct {
 	HistoryId      string
 	HistoryWidth   int
 
-	history *historyTool
+	History *HistoryTool
 	startX  int
 }
 
@@ -29,22 +30,20 @@ func (box *BoxEditor) Draw(s tcell.Screen) {
 	if box.EditorBottom {
 		stuff.ScreenPrintWithSecondStyleAt(s, 2, h-2, style, styleHl, box.InterfaceText2, '`')
 		stuff.ScreenPrintWithSecondStyleAt(s, 2, h-1, style, styleHl, box.InterfaceText1+box.Text, '`')
-		//stuff.ScreenPrintAt(s, 2, h-2, style, box.InterfaceText2)
-		//stuff.ScreenPrintAt(s, 2, h-1, style, box.InterfaceText1+box.Text)
 		s.ShowCursor(box.startX+box.Cursor, h-1)
 	} else {
 		stuff.ScreenPrintWithSecondStyleAt(s, 2, h-2, style, styleHl, box.InterfaceText1+box.Text, '`')
 		stuff.ScreenPrintWithSecondStyleAt(s, 2, h-1, style, styleHl, box.InterfaceText2, '`')
 		s.ShowCursor(box.startX+box.Cursor, h-2)
 	}
-	if box.history != nil {
-		box.history.Draw(s)
+	if box.History != nil {
+		box.History.Draw(s)
 	}
 }
 
 func (box *BoxEditor) ProcessEvent(event tcell.Event) bool {
-	if box.history != nil {
-		box.history.ProcessEvent(event)
+	if box.History != nil {
+		box.History.ProcessEvent(event)
 		return true
 	}
 
@@ -87,7 +86,7 @@ func (box *BoxEditor) ProcessEvent(event tcell.Event) bool {
 			box.Text = string(([]rune(box.Text))[0:box.Cursor]) + string(ev.Rune()) + string(([]rune(box.Text))[box.Cursor:])
 			box.Cursor++
 		case tcell.KeyUp:
-			box.showHistory()
+			box.ShowHistory()
 		}
 	}
 	return true
@@ -95,7 +94,7 @@ func (box *BoxEditor) ProcessEvent(event tcell.Event) bool {
 
 func (box *BoxEditor) editComplete() {
 	if len(box.HistoryId) > 0 {
-		items := files.ReadHistory(box.HistoryId)
+		items := settings.ReadHistory(box.HistoryId)
 		var newIts []string
 		for _, i := range items {
 			if i != box.Text {
@@ -103,24 +102,25 @@ func (box *BoxEditor) editComplete() {
 			}
 		}
 		newIts = append(newIts, box.Text)
-		files.WriteHistory(box.HistoryId, newIts)
+		settings.WriteHistory(box.HistoryId, newIts)
 	}
 	box.Callback(&box.Text)
 }
 
-func (box *BoxEditor) showHistory() {
+func (box *BoxEditor) ShowHistory() {
 	if len(box.HistoryId) > 0 {
-		box.history = &historyTool{
-			historyId: box.HistoryId,
-			left:      box.startX,
-			callback: func(res *string) {
+		box.History = &HistoryTool{
+			HistoryId: box.HistoryId,
+			Left:      box.startX,
+			Width:     box.HistoryWidth,
+			Callback: func(res *string) {
 				if res != nil {
-					box.Text = *res
+					box.Text = strings.Trim(*res, " ")
 					box.Cursor = len(box.Text)
 				}
-				box.history = nil
+				box.History = nil
 			},
 		}
-		box.history.Init()
+		box.History.Init()
 	}
 }
