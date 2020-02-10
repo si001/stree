@@ -9,12 +9,30 @@ import (
 )
 
 type boxMessage struct {
+	isCenter     bool
 	message      string
 	needYNAnswer bool
 	callback     func(result bool)
 }
 
 func (box *boxMessage) Draw(s tcell.Screen) {
+	if box.isCenter {
+		box.DrawCenter(s)
+	} else {
+		box.DrawBottom(s)
+	}
+}
+
+func (box *boxMessage) DrawBottom(s tcell.Screen) {
+	_, h := s.Size()
+	style := tcell.Style(0).Foreground(tcell.ColorDefault).Background(tcell.ColorDefault)
+	style2 := tcell.Style(0).Foreground(tcell.ColorYellow).Background(tcell.ColorDefault)
+
+	stuff.ScreenPrintWithSecondStyleAt(s, 1, h-2, style, style2, box.message, '`')
+	stuff.ScreenPrintWithSecondStyleAt(s, 2, h-1, style, style2, "Press `Yes or `No key.", '`')
+}
+
+func (box *boxMessage) DrawCenter(s tcell.Screen) {
 	w, h := s.Size()
 	style := tcell.Style(0).Foreground(tcell.ColorDefault).Background(tcell.ColorDefault)
 	style2 := tcell.Style(0).Foreground(tcell.ColorYellow).Background(tcell.ColorDefault)
@@ -76,17 +94,29 @@ func (box *boxMessage) success(success bool) {
 	}
 }
 
-func RequestYNMessageBox(message string, callback func(result bool)) {
+func RequestYNMessageBoxCenter(message string, callback func(result bool)) {
 	model.BottomMode = &boxMessage{
 		message:      message,
 		callback:     callback,
+		isCenter:     true,
 		needYNAnswer: true,
 	}
 }
 
-func RequestMessageBox(message string, callback func(result bool)) {
+func RequestYNMessageBox(message string, callback func(result bool)) {
 	model.BottomMode = &boxMessage{
-		message:  message,
-		callback: callback,
+		message:      message,
+		callback:     callback,
+		isCenter:     false,
+		needYNAnswer: true,
+	}
+}
+
+func RequestMessageBoxCenter(message string, callback func(result bool)) {
+	model.BottomMode = &boxMessage{
+		message:      message,
+		callback:     callback,
+		isCenter:     true,
+		needYNAnswer: false,
 	}
 }

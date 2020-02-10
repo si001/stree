@@ -77,7 +77,7 @@ func ShowInfoBox(s tcell.Screen, root []*widgets.TreeNode, selected *widgets.Tre
 	stuff.ScreenPrintAt(s, w-23, row, style, fmt.Sprintf(" bytes% 15s", model.ParseSize(ts)))
 	row++
 
-	//stuff.ScreenPrintAt(s, w-13, h-1, style, "STreeGo V0.1")
+	stuff.ScreenPrintAt(s, w-13, h-1, style, "STreeGo V0.1")
 
 	//stuff.ScreenPrintAt(s, w-20, h-1, style, model.LastEvent)
 }

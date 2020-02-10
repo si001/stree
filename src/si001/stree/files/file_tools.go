@@ -6,6 +6,16 @@ import (
 	"os"
 )
 
+func MkDir(dirName string) error {
+	err := os.Mkdir(dirName, 0777)
+	return err
+}
+
+func Remove(dirName string) error {
+	err := os.Remove(dirName)
+	return err
+}
+
 func FileRename(oldName, newName string) error {
 	err := os.Rename(oldName, newName)
 	return err

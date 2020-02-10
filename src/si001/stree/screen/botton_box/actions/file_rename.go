@@ -16,16 +16,16 @@ type boxFileRename struct {
 	finishCallback func(newName string)
 }
 
-func RequestRename(path, oldName string, cb func(oldName, newName string) error, cbFinish func(newName string)) {
+func RequestRename(path, oldName, history, s1, s2 string, cb func(oldName, newName string) error, cbFinish func(newName string)) {
 	box := boxFileRename{
 		oldName: oldName,
 		BoxEditor: box_tools.BoxEditor{
-			InterfaceText1: "         to: ",
-			InterfaceText2: "Rename file: " + oldName + "  `↑ history  `D`e`l  `E`s`c  `E`n`t`e`r",
+			InterfaceText1: s1,
+			InterfaceText2: s2,
 			EditorBottom:   true,
 			Text:           oldName,
 			Cursor:         runewidth.StringWidth(oldName),
-			HistoryId:      "filename",
+			HistoryId:      history,
 		},
 		fileCallback:   cb,
 		finishCallback: cbFinish,
@@ -40,7 +40,7 @@ func RequestRename(path, oldName string, cb func(oldName, newName string) error,
 			if err == nil {
 				box.finishCallback(*newName)
 			} else {
-				RequestMessageBox(fmt.Sprintf("Error operation: %s", err), nil)
+				RequestMessageBoxCenter(fmt.Sprintf("Error operation: %s", err), nil)
 			}
 		}
 	}

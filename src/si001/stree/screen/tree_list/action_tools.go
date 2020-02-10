@@ -6,7 +6,7 @@ import (
 )
 
 func actionQuit() {
-	actions.RequestYNMessageBox("Do you really want to exit?", func(result bool) {
+	actions.RequestYNMessageBoxCenter("Do you really want to exit?", func(result bool) {
 		if result {
 			model.AppFinished = true
 		}

@@ -1,8 +1,6 @@
 package tree_list
 
 import (
-	"si001/stree/files"
-	"si001/stree/model"
 	"si001/stree/screen/botton_box"
 	"si001/stree/screen/botton_box/actions"
 )
@@ -55,12 +53,7 @@ func (self *TreeAndList) actionsList() {
 			ActName: "`Rename",
 			ActKey:  "rune[r]",
 			Callback: func() {
-				if fi, ok := (*self.List.SelectedStringer()).(*model.FileInfo); ok {
-					path := files.TreeNodeToPath(fi.Owner)
-					actions.RequestRename(path+model.PathDivider, fi.Name, files.FileRename, func(nn string) {
-						fi.Name = nn
-					})
-				}
+				self.actionRename(false)
 			},
 		},
 		botton_box.Action{

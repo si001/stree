@@ -9,7 +9,7 @@ import (
 	"sort"
 )
 
-func newDir(nm string, parent *widgets.TreeNode) (dir *widgets.TreeNode) {
+func NewDir(nm string, parent *widgets.TreeNode) (dir *widgets.TreeNode) {
 	dir = newDirFI(model.FileInfo{
 		Name:  nm,
 		AttrB: model.ATTR_NOTREAD,
@@ -42,16 +42,16 @@ func newDirFI(fInfo model.FileInfo, parent *widgets.TreeNode) (dir *widgets.Tree
 }
 
 func GetRoot() (r *widgets.TreeNode) {
-	r = newDir("", nil)
+	r = NewDir("", nil)
 	if runtime.GOOS == "windows" {
 		for _, drive := range "ABCDEFGHIJKLMNOPQRSTUVWXYZ" {
 			_, err := os.Open(string(drive) + ":\\")
 			if err == nil {
-				r.Nodes = append(r.Nodes, newDir(string(drive)+":", nil))
+				r.Nodes = append(r.Nodes, NewDir(string(drive)+":", nil))
 			}
 		}
 	} else {
-		r.Nodes = append(r.Nodes, newDir("/", nil))
+		r.Nodes = append(r.Nodes, NewDir("/", nil))
 	}
 	return r
 }

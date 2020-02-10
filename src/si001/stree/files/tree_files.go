@@ -27,7 +27,7 @@ func BuildTree(path string) *widgets.Tree {
 				}
 			}
 		} else {
-			dir = newDir(dirNm, dir)
+			dir = NewDir(dirNm, dir)
 		}
 		nodePath = append(nodePath, dir)
 		dir.Value = ReadDir(dir)
@@ -56,6 +56,9 @@ func LogTree(path string, tree *widgets.Tree) *widgets.Tree {
 	var root *widgets.TreeNode
 	var dir *widgets.TreeNode
 	for i, dirNm := range ph {
+		if len([]rune(strings.TrimSpace(dirNm))) == 0 {
+			continue
+		}
 		dirNm = UpcaseIfWindows(dirNm)
 		if i == 0 {
 			if dirNm == "" {
@@ -76,12 +79,12 @@ func LogTree(path string, tree *widgets.Tree) *widgets.Tree {
 				}
 			}
 			if dir == old || dir == nil {
-				actions.RequestMessageBox(fmt.Sprintf("Path '%s' is incorrect!", path), nil)
+				actions.RequestMessageBoxCenter(fmt.Sprintf("Path '%s' is incorrect!", path), nil)
 				return tree
 			}
 		}
 		if dir == nil {
-			actions.RequestMessageBox(fmt.Sprintf("Path '%s' is incorrect!", path), nil)
+			actions.RequestMessageBoxCenter(fmt.Sprintf("Path '%s' is incorrect!", path), nil)
 			return tree
 		}
 		nodePath = append(nodePath, dir)

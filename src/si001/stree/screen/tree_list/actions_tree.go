@@ -64,6 +64,27 @@ func (self *TreeAndList) actionsTree() {
 				self.actionLog()
 			},
 		},
+		botton_box.Action{
+			ActName: "`Make dir",
+			ActKey:  "rune[m]",
+			Callback: func() {
+				self.actionMkDir()
+			},
+		},
+		botton_box.Action{
+			ActName: "`Delete dir",
+			ActKey:  "rune[d]",
+			Callback: func() {
+				self.actionRmDir()
+			},
+		},
+		botton_box.Action{
+			ActName: "`Rename dir",
+			ActKey:  "rune[r]",
+			Callback: func() {
+				self.actionRename(true)
+			},
+		},
 		botton_box.Action{ // new line
 			ActName: "",
 			ActKey:  "",
