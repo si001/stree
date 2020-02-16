@@ -3,8 +3,8 @@ package tree_list
 import (
 	"fmt"
 	"github.com/gdamore/tcell"
-	"si001/stree/files"
 	"si001/stree/model"
+	"si001/stree/tools/files"
 	"si001/stree/widgets"
 	"strings"
 )

@@ -77,7 +77,7 @@ func ReadDirPath(node *widgets.TreeNode, path string) *model.Directory {
 	if err != nil {
 		dir.FileInfo.AttrB = model.ATTR_ERR_MESSAGE
 		node.Value = dir
-		pullDownFileInfoDelta(node, dir.Count-oldCount, dir.Size-oldSize, oldTagCount, oldTagSize)
+		pushDownFileInfoDelta(node, dir.Count-oldCount, dir.Size-oldSize, oldTagCount, oldTagSize)
 		return dir
 	} else {
 		dir.FileInfo.AttrB = model.ATTR_DIR
@@ -98,7 +98,7 @@ func ReadDirPath(node *widgets.TreeNode, path string) *model.Directory {
 		})
 
 		node.Value = dir
-		pullDownFileInfoDelta(node, dir.Count-oldCount, dir.Size-oldSize, oldTagCount, oldTagSize)
+		pushDownFileInfoDelta(node, dir.Count-oldCount, dir.Size-oldSize, oldTagCount, oldTagSize)
 		return dir
 	}
 }
@@ -130,14 +130,14 @@ func CloseDir(node *widgets.TreeNode) {
 	dir.TagCount = 0
 	dir.TagSize = 0
 	node.Value = dir
-	pullDownFileInfoDelta(node, oldCount, oldSize, oldTagCount, oldTagSize)
+	pushDownFileInfoDelta(node, oldCount, oldSize, oldTagCount, oldTagSize)
 }
 
-func PullDownFileInfoDeltaTag(node *widgets.TreeNode, deltaTagCount int32, deltaTagSize int64) {
-	pullDownFileInfoDelta(node, 0, 0, deltaTagCount, deltaTagSize)
+func PushDownFileInfoDeltaTag(node *widgets.TreeNode, deltaTagCount int32, deltaTagSize int64) {
+	pushDownFileInfoDelta(node, 0, 0, deltaTagCount, deltaTagSize)
 }
 
-func pullDownFileInfoDelta(node *widgets.TreeNode, deltaCount int32, deltaSize int64, deltaTagCount int32, deltaTagSize int64) {
+func pushDownFileInfoDelta(node *widgets.TreeNode, deltaCount int32, deltaSize int64, deltaTagCount int32, deltaTagSize int64) {
 	if node != nil {
 		for {
 			node = node.Value.(*model.Directory).FileInfo.Owner

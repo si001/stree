@@ -1,10 +1,10 @@
 package tree_list
 
 import (
-	"si001/stree/files"
 	"si001/stree/model"
 	"si001/stree/screen/botton_box"
 	"si001/stree/screen/botton_box/actions"
+	"si001/stree/tools/files"
 )
 
 func (self *TreeAndList) actionsTree() {
@@ -94,6 +94,7 @@ func (self *TreeAndList) actionsTree() {
 			ActKey:  "f3",
 			Callback: func() {
 				node := self.Tree.SelectedNode()
+				files.CloseDir(node)
 				files.ReadDir(node)
 				self.ShowDir(model.CurrentPath, node, false, false)
 				self.Tree.Expand()

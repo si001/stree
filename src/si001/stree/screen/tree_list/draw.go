@@ -3,9 +3,9 @@ package tree_list
 import (
 	"github.com/gdamore/tcell"
 	"math"
-	"si001/stree/files"
 	"si001/stree/model"
 	"si001/stree/screen/info_box"
+	"si001/stree/tools/files"
 )
 
 func (self *TreeAndList) Draw(s tcell.Screen, viewMode model.VmType, w, h int) {

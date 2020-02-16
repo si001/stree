@@ -8,11 +8,11 @@ import (
 	"math"
 	"os"
 	"runtime"
-	"si001/stree/files"
-	"si001/stree/files/settings"
 	"si001/stree/model"
 	"si001/stree/screen"
 	"si001/stree/screen/tree_list"
+	"si001/stree/tools/files"
+	"si001/stree/tools/files/settings"
 	"si001/stree/widgets"
 	"time"
 )

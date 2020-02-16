@@ -153,6 +153,10 @@ func (self *Tree) ScrollToMouse(x, y int) {
 	self.SelectedRow = sel
 }
 
+func (self *Tree) TopRowSet(t int) {
+	self.topRow = t
+}
+
 func (self *Tree) Draw(s tcell.Screen) {
 	self.Block.Draw(s)
 	point := self.Inner.Min

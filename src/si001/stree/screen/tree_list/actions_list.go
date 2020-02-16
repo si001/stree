@@ -57,6 +57,13 @@ func (self *TreeAndList) actionsList() {
 			},
 		},
 		botton_box.Action{
+			ActName: "`Copy",
+			ActKey:  "rune[c]",
+			Callback: func() {
+				self.actionCopy(false)
+			},
+		},
+		botton_box.Action{
 			ActName: "`Log path",
 			ActKey:  "rune[l]",
 			Callback: func() {

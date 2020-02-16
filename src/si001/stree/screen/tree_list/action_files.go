@@ -2,9 +2,10 @@ package tree_list
 
 import (
 	"fmt"
-	"si001/stree/files"
 	"si001/stree/model"
 	"si001/stree/screen/botton_box/actions"
+	"si001/stree/tools"
+	"si001/stree/tools/files"
 	"si001/stree/widgets"
 	"sort"
 )
@@ -41,13 +42,7 @@ func (self *TreeAndList) actionRmDir() {
 			actions.RequestMessageBoxCenter("You can't remove a NOT EMPTY folder!", nil)
 			return
 		}
-		n := []rune(tn.Value.(*model.Directory).Name)
-		nm := make([]rune, len(n)*2)
-		copy(nm, n)
-		for i := len(n) - 1; i >= 0; i-- {
-			copy(nm[i+1:], nm[i:])
-			nm[i] = '`'
-		}
+		nm := tools.ToBright(tn.Value.(*model.Directory).Name)
 		pTxt := files.TreeNodeToPath(tn.Value.(*model.Directory).Owner) + model.PathDivider + string(nm)
 		actions.RequestYNMessageBox(fmt.Sprintf("DELETE dir %s ?", pTxt), func(yes bool) {
 			if yes {
@@ -79,18 +74,24 @@ func (self *TreeAndList) actionRename(isDir bool) {
 		if dir, ok := (tn.Value).(*model.Directory); ok && (tn.Value).(*model.Directory).Owner != nil {
 			path := files.TreeNodeToPath(tn.Value.(*model.Directory).Owner) + model.PathDivider
 			t1 := "           to: "
-			t2 := "Rename folder: " + dir.Name + "  `↑ history  `D`e`l  `E`s`c  `E`n`t`e`r"
-			actions.RequestRename(path, dir.Name, "foldername", t1, t2, files.FileRename, func(nn string) {
-				dir.Name = nn
+			t2 := "Rename folder: " + dir.Name
+			t3 := "`↑ history  `D`e`l  `E`s`c  `E`n`t`e`r"
+			actions.RequestRename(path, dir.Name, "foldername", t1, t2, t3, files.FileRename, func(nn *string) {
+				if nn != nil {
+					dir.Name = *nn
+				}
 			})
 		}
 	} else {
 		if fi, ok := (*self.List.SelectedStringer()).(*model.FileInfo); ok {
 			path := files.TreeNodeToPath(fi.Owner)
 			t1 := "         to: "
-			t2 := "Rename file: " + fi.Name + "  `↑ history  `D`e`l  `E`s`c  `E`n`t`e`r"
-			actions.RequestRename(path+model.PathDivider, fi.Name, "filename", t1, t2, files.FileRename, func(nn string) {
-				fi.Name = nn
+			t2 := "Rename file: " + fi.Name
+			t3 := "`↑ history  `D`e`l  `E`s`c  `E`n`t`e`r"
+			actions.RequestRename(path+model.PathDivider, fi.Name, "filename", t1, t2, t3, files.FileRename, func(nn *string) {
+				if nn != nil {
+					fi.Name = *nn
+				}
 			})
 		}
 	}

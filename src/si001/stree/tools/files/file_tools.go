@@ -24,7 +24,7 @@ func FileRename(oldName, newName string) error {
 // CopyFile copies a file from src to dst. If src and dst files exist, and are
 // the same, then return success. Otherise, attempt to create a hard link
 // between the two files. If that fail, copy the file contents from src to dst.
-func FileCopy(src, dst string) (err error) {
+func FileCopy(src, dst string) (err error, size int64) {
 	sfi, err := os.Stat(src)
 	if err != nil {
 		return
@@ -32,7 +32,7 @@ func FileCopy(src, dst string) (err error) {
 	if !sfi.Mode().IsRegular() {
 		// cannot copy non-regular files (e.g., directories,
 		// symlinks, devices, etc.)
-		return fmt.Errorf("CopyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String())
+		return fmt.Errorf("CopyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String()), 0
 	}
 	dfi, err := os.Stat(dst)
 	if err != nil {
@@ -41,7 +41,7 @@ func FileCopy(src, dst string) (err error) {
 		}
 	} else {
 		if !(dfi.Mode().IsRegular()) {
-			return fmt.Errorf("CopyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String())
+			return fmt.Errorf("CopyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String()), 0
 		}
 		if os.SameFile(sfi, dfi) {
 			return
@@ -51,7 +51,7 @@ func FileCopy(src, dst string) (err error) {
 		return
 	}
 	err = copyFileContents(src, dst)
-	return
+	return err, sfi.Size()
 }
 
 // copyFileContents copies the contents of the file named src to the file named

@@ -3,7 +3,7 @@ package box_tools
 import (
 	"fmt"
 	"github.com/gdamore/tcell"
-	"si001/stree/files/settings"
+	"si001/stree/tools/files/settings"
 	"si001/stree/widgets"
 )
 

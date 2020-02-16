@@ -1,8 +1,8 @@
 package tree_list
 
 import (
-	"si001/stree/files"
 	"si001/stree/model"
+	"si001/stree/tools/files"
 	"si001/stree/widgets"
 )
 
@@ -50,11 +50,11 @@ func setTagFileInfo(fi *model.FileInfo, set bool) {
 		if set {
 			dir.TagCount++
 			dir.TagSize += fi.Size
-			files.PullDownFileInfoDeltaTag(node, 1, fi.Size)
+			files.PushDownFileInfoDeltaTag(node, 1, fi.Size)
 		} else {
 			dir.TagCount--
 			dir.TagSize -= fi.Size
-			files.PullDownFileInfoDeltaTag(node, -1, -fi.Size)
+			files.PushDownFileInfoDeltaTag(node, -1, -fi.Size)
 		}
 	}
 }
