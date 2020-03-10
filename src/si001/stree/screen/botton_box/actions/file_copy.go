@@ -18,22 +18,21 @@ type boxFileCopyTo struct {
 	box_tools.BoxEditor
 }
 
-func RequestCopy(path, oldName, s1, s2, s3, c1, c2, c3 string, startSelectFolder func(s func(result *string)) (func(s tcell.Screen), func(event tcell.Event) bool), cbFinish func(newPath, newName *string)) {
+func RequestCopy(s2param, def, s1, s2, s3, c1, c2, c3 string, startSelectFolder func(s func(result *string)) (func(s tcell.Screen), func(event tcell.Event) bool), cbFinish func(newPath, newName *string)) {
 	box := boxFileCopyAs{
 		BoxEditor: box_tools.BoxEditor{
 			InterfaceText1: s1,
-			InterfaceText2: fmt.Sprintf(s2, oldName),
+			InterfaceText2: fmt.Sprintf(s2, s2param),
 			InterfaceText3: s3,
 			EditorBottom:   true,
-			Text:           oldName,
-			Cursor:         runewidth.StringWidth(oldName),
+			Text:           def,
+			Cursor:         runewidth.StringWidth(def),
 			HistoryId:      "filename",
 		},
 	}
-	model.BottomMode = &box
 	box.BoxEditor.Callback = func(newName *string) {
 		if newName != nil {
-			c22 := fmt.Sprintf("%s as %s", tools.ToBright(oldName), tools.ToBright(*newName))
+			c22 := fmt.Sprintf("%s as %s", tools.ToBright(s2param), tools.ToBright(*newName))
 			box2 := boxFileCopyTo{
 				BoxEditor: box_tools.BoxEditor{
 					InterfaceText1: c1,
@@ -55,5 +54,10 @@ func RequestCopy(path, oldName, s1, s2, s3, c1, c2, c3 string, startSelectFolder
 			botton_box.NormalBottomBox()
 			cbFinish(nil, nil)
 		}
+	}
+	if def == "*" {
+		box.BoxEditor.Callback(&def)
+	} else {
+		model.BottomMode = &box
 	}
 }

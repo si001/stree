@@ -1,6 +1,7 @@
 package tree_list
 
 import (
+	"si001/stree/model"
 	"si001/stree/screen/botton_box"
 	"si001/stree/screen/botton_box/actions"
 )
@@ -60,7 +61,28 @@ func (self *TreeAndList) actionsList() {
 			ActName: "`Copy",
 			ActKey:  "rune[c]",
 			Callback: func() {
-				self.actionCopy(false)
+				self.actionCopy()
+			},
+		},
+		botton_box.Action{
+			ActName: "`Ctl+`Copy tagged",
+			ActKey:  "ctrl+c",
+			Callback: func() {
+				self.actionCopyTagged()
+			},
+		},
+		botton_box.Action{
+			ActName: "`Delete",
+			ActKey:  "rune[d]",
+			Callback: func() {
+				self.actionRmFile()
+			},
+		},
+		botton_box.Action{
+			ActName: "`Ctl+`Delete",
+			ActKey:  "ctrl+d",
+			Callback: func() {
+				self.actionRmFiles()
 			},
 		},
 		botton_box.Action{
@@ -68,6 +90,7 @@ func (self *TreeAndList) actionsList() {
 			ActKey:  "rune[l]",
 			Callback: func() {
 				self.actionLog()
+				ViewModeChange(model.VM_TREEVIEW_FILES_1)
 			},
 		},
 		botton_box.Action{

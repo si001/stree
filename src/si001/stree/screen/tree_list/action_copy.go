@@ -1,6 +1,7 @@
 package tree_list
 
 import (
+	"fmt"
 	"github.com/gdamore/tcell"
 	"si001/stree/model"
 	"si001/stree/screen/botton_box/actions"
@@ -10,7 +11,7 @@ import (
 	"time"
 )
 
-func (self *TreeAndList) actionCopy(tagged bool) {
+func (self *TreeAndList) actionCopy() {
 	if fi, ok := (*self.List.SelectedStringer()).(*model.FileInfo); ok {
 		path := files.TreeNodeToPath(fi.Owner)
 		t1 := "       as: "
@@ -19,7 +20,7 @@ func (self *TreeAndList) actionCopy(tagged bool) {
 		s1 := "       to: "
 		s2 := "Copy file: %s"
 		s3 := "`↑ history  `D`e`l  `E`s`c  `E`n`t`e`r  `F`2 folder"
-		actions.RequestCopy(path+model.PathDivider, fi.Name, t1, t2, t3, s1, s2, s3, self.startSelectFolder, func(newPath, newName *string) {
+		actions.RequestCopy(fi.Name, fi.Name, t1, t2, t3, s1, s2, s3, self.startSelectFolder, func(newPath, newName *string) {
 			if newPath != nil && len(*newPath) > 0 {
 				err, size := files.FileCopy(path+model.PathDivider+fi.Name, *newPath+model.PathDivider+*newName)
 				if err == nil {
@@ -33,6 +34,47 @@ func (self *TreeAndList) actionCopy(tagged bool) {
 					node, _ := files.PutFileToPath(*newPath, &fileInfo, self.Tree)
 					if strings.Compare(path, *newPath) == 0 {
 						self.ShowDir("", node, false, false)
+					}
+				}
+			}
+		})
+	}
+}
+
+func (self *TreeAndList) actionCopyTagged() {
+	var fls []*model.FileInfo
+	for _, tgd := range self.List.Rows {
+		if fi, ok := (*tgd).(*model.FileInfo); ok && fi.IsTagged() {
+			fls = append(fls, fi)
+		}
+	}
+	if len(fls) > 0 {
+		//path := files.TreeNodeToPath(fi.Owner)
+		t1 := "       as: "
+		t2 := "Copy %s tagged files"
+		t3 := "`↑ history  `D`e`l  `E`s`c  `E`n`t`e`r"
+		s1 := "       to: "
+		s2 := "Copy %s files"
+		s3 := "`↑ history  `D`e`l  `E`s`c  `E`n`t`e`r  `F`2 folder"
+		actions.RequestCopy(fmt.Sprintf("%d", len(fls)), "*", t1, t2, t3, s1, s2, s3, self.startSelectFolder, func(newPath, newName *string) {
+			if newPath != nil && len(*newPath) > 0 {
+				for _, fi := range fls {
+					path := files.TreeNodeToPath(fi.Owner)
+					newName = &fi.Name
+					err, size := files.FileCopy(path+model.PathDivider+fi.Name, *newPath+model.PathDivider+*newName)
+					if err == nil {
+						fileInfo := model.FileInfo{
+							Name:    *newName,
+							Size:    size,
+							ModTime: time.Now(),
+							AttrB:   0,
+							Owner:   nil,
+						}
+						//node, _ :=
+						files.PutFileToPath(*newPath, &fileInfo, self.Tree)
+						//if strings.Compare(path, *newPath) == 0 {
+						//	self.ShowDir("", node, false, false)
+						//}
 					}
 				}
 			}

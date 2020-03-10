@@ -58,6 +58,6 @@ func PutFileToPath(path string, file *model.FileInfo, tree *widgets.Tree) (resNo
 	node := nodePath[len(nodePath)-1]
 	file.Owner = node
 	node.Value.(*model.Directory).Files = append(node.Value.(*model.Directory).Files, file)
-	pushDownFileInfoDelta(node, 1, file.Size, 0, 0)
+	PushDownFileInfoDelta(node, 1, file.Size, 0, 0)
 	return node, nil
 }

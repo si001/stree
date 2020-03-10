@@ -1,12 +1,9 @@
 package tree_list
 
 import (
-	"fmt"
 	"si001/stree/model"
 	"si001/stree/screen/botton_box/actions"
-	"si001/stree/tools"
 	"si001/stree/tools/files"
-	"si001/stree/widgets"
 	"sort"
 )
 
@@ -27,44 +24,6 @@ func (self *TreeAndList) actionMkDir() {
 			self.Tree.PrepareNodes()
 			self.Tree.Expand()
 		})
-	}
-}
-
-func (self *TreeAndList) actionRmDir() {
-	tn := self.Tree.SelectedNode()
-	if (tn.Value).(*model.Directory).Owner != nil {
-		path := files.TreeNodeToPath(tn) + model.PathDivider
-		if (tn.Value).(*model.Directory).AttrB&model.ATTR_NOTREAD > 0 {
-			files.ReadDir(tn)
-			self.ShowDir(path, tn, false, false)
-		}
-		if len(tn.Nodes) > 0 || len(tn.Value.(*model.Directory).Files) > 0 {
-			actions.RequestMessageBoxCenter("You can't remove a NOT EMPTY folder!", nil)
-			return
-		}
-		nm := tools.ToBright(tn.Value.(*model.Directory).Name)
-		pTxt := files.TreeNodeToPath(tn.Value.(*model.Directory).Owner) + model.PathDivider + string(nm)
-		actions.RequestYNMessageBox(fmt.Sprintf("DELETE dir %s ?", pTxt), func(yes bool) {
-			if yes {
-				err := files.Remove(path)
-				if err != nil {
-					actions.RequestMessageBoxCenter(fmt.Sprintf("You can't process the operation: %s", err), nil)
-				} else {
-					own := tn.Value.(*model.Directory).Owner
-					var nnn []*widgets.TreeNode
-					for _, n := range own.Nodes {
-						if n != tn {
-							nnn = append(nnn, n)
-						}
-					}
-					own.Nodes = nnn
-					self.Tree.PrepareNodes()
-					self.Tree.ScrollUp()
-				}
-			}
-		})
-	} else {
-		actions.RequestMessageBoxCenter("You can't remove a root folder!", nil)
 	}
 }
 
