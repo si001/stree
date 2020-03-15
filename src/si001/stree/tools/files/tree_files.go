@@ -52,6 +52,9 @@ func BuildTree(path string) *widgets.Tree {
 
 func LogTree(path string, tree *widgets.Tree) *widgets.Tree {
 	ph := strings.Split(path, model.PathDivider)
+	if ph[0] == "" {
+		ph[0] = model.PathDivider
+	}
 	var nodePath []*widgets.TreeNode
 	var root *widgets.TreeNode
 	var dir *widgets.TreeNode
