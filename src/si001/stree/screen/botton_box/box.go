@@ -43,7 +43,7 @@ func SetTreeActions(acts []Action) {
 
 func ActionsDraw(s tcell.Screen, actions []Action) {
 	_, h := s.Size()
-	style := tcell.Style(0).Foreground(tcell.ColorDefault).Background(tcell.ColorDefault)
+	style := tcell.Style(0).Foreground(tcell.ColorLightGray).Background(tcell.ColorDefault)
 	style2 := tcell.Style(0).Foreground(tcell.ColorYellow).Background(tcell.ColorDefault)
 
 	acts := ""

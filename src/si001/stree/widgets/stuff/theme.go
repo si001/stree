@@ -114,7 +114,7 @@ var Theme = RootTheme{
 
 	Block: BlockTheme{
 		Title:  NewStyle(ColorWhite),
-		Border: NewStyle(ColorWhite),
+		Border: NewStyle(ColorRed).Background(ColorDefault).Foreground(ColorBlack),
 	},
 
 	//BarChart: BarChartTheme{

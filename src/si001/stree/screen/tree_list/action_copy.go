@@ -21,6 +21,9 @@ func (self *TreeAndList) actionCopy() {
 		s2 := "Copy file: %s"
 		s3 := "`↑ history  `D`e`l  `E`s`c  `E`n`t`e`r  `F`2 folder"
 		actions.RequestCopy(fi.Name, fi.Name, t1, t2, t3, s1, s2, s3, self.startSelectFolder, func(newPath, newName *string) {
+			if *newPath == "." {
+				newPath = &path
+			}
 			if newPath != nil && len(*newPath) > 0 {
 				err, size := files.FileCopy(path+model.PathDivider+fi.Name, *newPath+model.PathDivider+*newName)
 				if err == nil {

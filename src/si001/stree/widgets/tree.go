@@ -87,7 +87,7 @@ type Tree struct {
 func NewTree() *Tree {
 	return &Tree{
 		Block:            *stuff.NewBlock(),
-		TextStyle:        stuff.Theme.Tree.Text,
+		TextStyle:        stuff.StyleClear,
 		SelectedRowStyle: stuff.Theme.Tree.Text.Foreground(tcell.ColorWhite).Background(tcell.ColorBlue),
 		WrapText:         true,
 	}

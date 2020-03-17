@@ -9,6 +9,9 @@ import (
 
 func PutFileToPath(path string, file *model.FileInfo, tree *widgets.Tree) (resNode *widgets.TreeNode, resStr *string) {
 	ph := strings.Split(path, model.PathDivider)
+	if ph[0] == "" {
+		ph[0] = model.PathDivider
+	}
 	var nodePath []*widgets.TreeNode
 	var dir *widgets.TreeNode
 	for i, dirNm := range ph {

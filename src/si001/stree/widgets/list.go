@@ -41,9 +41,9 @@ type Styler interface {
 func NewList() *List {
 	return &List{
 		Block:            *stuff.NewBlock(),
-		TextStyle:        stuff.Theme.Tree.Text,
+		TextStyle:        stuff.StyleClear,
 		SelectedRowStyle: stuff.Theme.Tree.Text.Foreground(tcell.ColorWhite).Background(tcell.ColorBlue),
-		TaggedRowStyle:   stuff.Theme.Tree.Text.Foreground(tcell.ColorYellow),
+		TaggedRowStyle:   stuff.Theme.Tree.Text.Foreground(tcell.ColorYellow).Background(tcell.ColorDefault),
 	}
 }
 

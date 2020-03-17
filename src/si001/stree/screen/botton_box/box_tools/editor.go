@@ -83,7 +83,7 @@ func (box *BoxEditor) ProcessEvent(event tcell.Event) bool {
 			if box.Cursor < runewidth.StringWidth(box.Text) {
 				box.Cursor++
 			}
-		case tcell.KeyBackspace:
+		case tcell.KeyBackspace, tcell.KeyBackspace2:
 			if box.Cursor > 0 {
 				box.Text =
 					string(([]rune(box.Text))[0:box.Cursor-1]) + string(([]rune(box.Text))[box.Cursor:])

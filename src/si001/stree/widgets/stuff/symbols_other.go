@@ -25,4 +25,8 @@ const (
 
 	VERTICAL_DASH   = '┊'
 	HORIZONTAL_DASH = '┈'
+	FOUR_DOTS       = '⁘'
+	REFERENCE_MARK  = '⁜'
+	DOTTED_CROSS    = '※'
+	TRIANGLE        = '✧'
 )

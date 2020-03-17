@@ -14,6 +14,7 @@ import (
 	"si001/stree/tools/files"
 	"si001/stree/tools/files/settings"
 	"si001/stree/widgets"
+	"si001/stree/widgets/stuff"
 	"time"
 )
 
@@ -49,11 +50,13 @@ func ShowMain() {
 		os.Exit(1)
 	}
 	defStyle = tcell.StyleDefault.
-		Background(tcell.ColorBlack).
-		Foreground(tcell.ColorWhite)
+		Background(tcell.ColorDefault).
+		Foreground(tcell.ColorLightGray)
+	//tcell.StyleDefault = defStyle
+	stuff.StyleClear = defStyle
 	s.SetStyle(defStyle)
 	s.EnableMouse()
-	s.Clear()
+	//s.Clear()
 	//defer ui.Close()
 
 	dir, err := os.Getwd()

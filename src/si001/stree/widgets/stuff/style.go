@@ -20,7 +20,7 @@ const (
 )
 
 // StyleClear represents a default Style, with no colors or modifiers
-var StyleClear = tcell.StyleDefault.Foreground(tcell.ColorDefault).Background(tcell.ColorDefault)
+var StyleClear = tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorLightGray)
 
 //Modifier: ModifierClear,
 //}

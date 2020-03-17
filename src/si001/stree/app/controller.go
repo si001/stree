@@ -17,7 +17,9 @@ func processEvent(event tcell.Event) {
 func draw(s tcell.Screen, count int) {
 	w, h := s.Size()
 	model.ScreenWidth, model.ScreenHeight = w, h
-	stuff.ScreenFillBox(s, 0, 0, w, h, tcell.StyleDefault, ' ')
+	stuff.ScreenFillBox(s, 0, 0, w, h, stuff.StyleClear, ' ')
+	//s.Clear()
+	//stuff.ScreenDrawBox(s, 0, 0, w, h, stuff.StyleClear, '.')
 	screen.TreeAndList1.Draw(s, model.ViewMode(), w, h)
 	botton_box.Draw(s)
 	s.Show()

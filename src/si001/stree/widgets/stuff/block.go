@@ -34,7 +34,7 @@ type Block struct {
 func NewBlock() *Block {
 	return &Block{
 		Border:       true,
-		BorderStyle:  Theme.Block.Border,
+		BorderStyle:  tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorLightGray),
 		BorderLeft:   true,
 		BorderRight:  true,
 		BorderTop:    true,

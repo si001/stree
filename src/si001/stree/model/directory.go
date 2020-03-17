@@ -22,7 +22,7 @@ func (dir Directory) String() string {
 func (dir *Directory) ParsePatch(node *widgets.TreeNode) (path, value string) {
 	var sb strings.Builder
 	if dir.IsNotRead() {
-		sb.WriteRune(stuff.HORIZONTAL_DASH)
+		sb.WriteRune(stuff.FOUR_DOTS)
 	} else if len(node.Nodes) == 0 {
 		sb.WriteRune(' ')
 	} else if node.Expanded {
