@@ -11,7 +11,7 @@ func TreeNodeToPath(node *widgets.TreeNode) (result string) {
 	for {
 		result = model.PathDivider + node.Value.String() + result
 		node = node.Value.(*model.Directory).FileInfo.Owner
-		if node == nil {
+		if node == nil || node.Value == nil {
 			break
 		}
 	}

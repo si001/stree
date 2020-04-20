@@ -47,7 +47,7 @@ func (self *TreeAndList) PutEventTreeList(event tcell.Event) bool {
 					ViewModeChange(model.VM_FILELIST_1)
 					self.List.ScrollTop()
 				}
-			} else {
+			} else if mouseLastEvent != nil {
 				if l.CheckIn(ev.Position()) || l.CheckIn(mouseLastEvent.Position()) {
 					l.ScrollToMouse(ev.Position())
 					toLastEvent = mouseLastEvent
