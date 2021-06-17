@@ -1,3 +1,11 @@
+/src/github.com/
+/pkg/
+/.idea/
+/stree64
+/stree64.exe
+/stree386
+/stree386.exe
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
